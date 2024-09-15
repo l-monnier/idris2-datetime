@@ -1,47 +1,16 @@
 package idris2-datetime
+
 version = 0.1.0
-authors = "leo"
--- maintainers =
--- license =
--- brief =
--- readme =
--- homepage =
--- sourceloc =
--- bugtracker =
+authors = "Léonard Monnier"
+license = "BSD 3-Clause License"
+brief = "A datetime library in Idris2"
+readme = "README.md"
+homepage = "https://github.com/l-monnier/idris2-datetime"
 
--- the Idris2 version required (e.g. langversion >= 0.5.1)
--- langversion
+depends = base >= 0.5.1
+        , elab-util
+        , refined
 
--- packages to add to search path
--- depends =
-
--- modules to install
 modules = Idris2_datetime
 
--- main file (i.e. file to load at REPL)
--- main =
-
--- name of executable
--- executable =
--- opts =
 sourcedir = "src"
--- builddir =
--- outputdir =
-
--- script to run before building
--- prebuild =
-
--- script to run after building
--- postbuild =
-
--- script to run after building, before installing
--- preinstall =
-
--- script to run after installing
--- postinstall =
-
--- script to run before cleaning
--- preclean =
-
--- script to run after cleaning
--- postclean =
