@@ -1,0 +1,10 @@
+[custom.all.idris2-datetime]
+type = "local"
+path = "."
+ipkg = "idris2-datetime.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.idris2-datetime-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
