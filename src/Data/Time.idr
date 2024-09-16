@@ -20,7 +20,7 @@ record Hour where
 namespace Hour
   %runElab derive "Hour" [Show, Eq, Ord, RefinedInteger]
 
-||| A minute ranging from 1 to 59.
+||| A minute ranging from 0 to 59.
 public export
 record Minute where
   constructor MkMinute
