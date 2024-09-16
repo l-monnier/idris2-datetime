@@ -29,3 +29,13 @@ record Minute where
 
 namespace Minute
   %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
+
+||| A second ranging from 0 to 59.
+public export
+record Second where
+  constructor MkSecond
+  second : Bits8
+  {auto 0 valid : FromTo 0 59 second}
+
+namespace Second
+  %runElab derive "Second" [Show, Eq, Ord, RefinedInteger]
