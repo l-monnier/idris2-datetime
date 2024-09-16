@@ -39,3 +39,13 @@ record Second where
 
 namespace Second
   %runElab derive "Second" [Show, Eq, Ord, RefinedInteger]
+
+||| A fraction of a second from 0.
+|||
+||| This number is what comes after `,` or `.`.
+||| For example, if you provide `25`, then the fraction is `,25` (or `.25`).
+public export
+record Fraction where
+  constructor MkFraction
+  fraction : Integer
+  {auto 0 valid : From 0 fraction}
