@@ -3,7 +3,7 @@ module Data.Time
 
 import Data.Refined
 import Data.Refined.Bits8
-import Data.Refined.Int8
+import Data.Refined.Integer
 import Derive.Prelude
 import Derive.Refined
 
