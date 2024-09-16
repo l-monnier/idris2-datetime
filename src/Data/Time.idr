@@ -49,3 +49,6 @@ record Fraction where
   constructor MkFraction
   fraction : Integer
   {auto 0 valid : From 0 fraction}
+
+namespace Fraction
+  %runElab derive "Fraction" [Show, Eq, Ord]
