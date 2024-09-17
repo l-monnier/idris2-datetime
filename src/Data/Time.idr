@@ -30,12 +30,14 @@ record Minute where
 namespace Minute
   %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
 
-||| A second ranging from 0 to 59.
+||| A second ranging from 0 to 60.
+|||
+||| `60` is used for leap seconds.
 public export
 record Second where
   constructor MkSecond
   second : Bits8
-  {auto 0 valid : FromTo 0 59 second}
+  {auto 0 valid : FromTo 0 60 second}
 
 namespace Second
   %runElab derive "Second" [Show, Eq, Ord, RefinedInteger]
