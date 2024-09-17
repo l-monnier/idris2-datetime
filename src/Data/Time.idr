@@ -50,27 +50,79 @@ public export
 record Fraction where
   constructor MkFraction
   fraction : Integer
-  {auto 0 valid : From 0 fraction}
+  {auto 0 valid : fraction > -1}
 
 namespace Fraction
   %runElab derive "Fraction" [Show, Eq, Ord]
 
-namespace Offset
+||| Sign of an UTC `Offset` or of an offset `Duration`.
+|||
+||| `Plus` stands for `+`.
+||| `Minus` stands for `-`.
+public export
+data Sign = Plus | Minus
 
-  ||| Sign of an UTC offset.
-  |||
-  ||| `Plus` stands for `+`.
-  ||| `Minus` stands for `-`.
+%runElab derive "Sign" [Show, Eq]
+
+Ord Sign where
+  compare Plus  Plus  = EQ
+  compare Minus Minus = EQ
+  compare Plus  Minus = GT
+  compare Minus Plus  = LT
+
+namespace Duration
+
+  ||| Number of hours of a time `Duration`.
   public export
-  data Sign = Plus | Minus
+  record Hours where
+    constructor MkHours
+    hours : Integer
+    {auto 0 valid : hours > -1}
 
-  %runElab derive "Sign" [Show, Eq]
+  %runElab derive "Hours" [Show, Eq, Ord]
 
-  Ord Sign where
-    compare Plus  Plus  = EQ
-    compare Minus Minus = EQ
-    compare Plus  Minus = GT
-    compare Minus Plus  = LT
+  ||| Number of minutes of a time `Duration`.
+  public export
+  record Minutes where
+    constructor MkMinutes
+    minutes : Integer
+    {auto 0 valid : minutes > -1}
+
+  %runElab derive "Minutes" [Show, Eq, Ord]
+
+  ||| Number of seconds of a time `Duration`.
+  public export
+  record Seconds where
+    constructor MkSeconds
+    seconds : Integer
+    {auto 0 valid : seconds > -1}
+
+  %runElab derive "Seconds" [Show, Eq, Ord]
+
+  ||| Fractions of a second of a time `Duration`.
+  |||
+  ||| This number is what comes after `,` or `.`.
+  ||| For example, if you provide `25`, then the fraction is `,25` (or `.25`).
+  public export
+  record Fraction where
+    constructor MkFraction
+    fraction : Integer
+    {auto 0 valid : fraction > -1}
+
+  %runElab derive "Fraction" [Show, Eq, Ord]
+
+  ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
+  public export
+  record Duration where
+    constructor MkDuration
+    hours    : Hours
+    minutes  : Minutes
+    seconds  : Seconds
+    fraction : Duration.Fraction
+
+  %runElab derive "Duration" [Show, Eq, Ord]
+
+namespace Offset
 
   ||| Number of hour of an UTC offset.
   |||
@@ -83,7 +135,7 @@ namespace Offset
     {auto 0 valid : FromTo 0 14 hours}
 
   namespace Hours
-    %runElab derive "Hours" [Show, Eq, Ord, RefinedInteger]
+    %runElab derive "Offset.Hours" [Show, Eq, Ord, RefinedInteger]
 
   ||| `ElemOf [m, n] o` is an alias for `(Equal m || Equal n) o`.
   |||
@@ -109,7 +161,7 @@ namespace Offset
     {auto 0 valid : ElemOf [0, 15, 30, 45] minutes}
 
   namespace Minutes
-    %runElab derive "Minutes" [Show, Eq, Ord, RefinedInteger]
+    %runElab derive "Offset.Minutes" [Show, Eq, Ord, RefinedInteger]
 
   ||| A zero value time offset cannot be stated with a negative sign.
   |||
@@ -119,7 +171,7 @@ namespace Offset
   |||
   ||| This is as per ISO 8601.
   private
-  validOffset : Sign -> Hours -> Minutes -> Bool
+  validOffset : Sign -> Offset.Hours -> Offset.Minutes -> Bool
   validOffset Minus 0 0 = False
   validOffset _     _ _ = True
 
@@ -128,8 +180,8 @@ namespace Offset
   record Offset where
     constructor MkOffset
     sign    : Sign
-    hours   : Hours
-    minutes : Minutes
+    hours   : Offset.Hours
+    minutes : Offset.Minutes
     {auto 0 valid : validOffset sign hours minutes = True}
 
   %runElab derive "Offset" [Show, Eq, Ord]
