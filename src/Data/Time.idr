@@ -57,7 +57,7 @@ namespace Fraction
 
 namespace Offset
 
-  ||| Sign of an UTC offest.
+  ||| Sign of an UTC offset.
   |||
   ||| `Plus` stands for `+`.
   ||| `Minus` stands for `-`.
