@@ -53,7 +53,7 @@ record Fraction where
   {auto 0 valid : fraction > -1}
 
 namespace Fraction
-  %runElab derive "Fraction" [Show, Eq, Ord]
+  %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
 
 ||| Sign of an UTC `Offset` or of an offset `Duration`.
 |||
@@ -79,7 +79,8 @@ namespace Duration
     hours : Integer
     {auto 0 valid : hours > -1}
 
-  %runElab derive "Hours" [Show, Eq, Ord]
+  namespace Hours
+    %runElab derive "Hours" [Show, Eq, Ord, RefinedInteger]
 
   ||| Number of minutes of a time `Duration`.
   public export
@@ -88,7 +89,8 @@ namespace Duration
     minutes : Integer
     {auto 0 valid : minutes > -1}
 
-  %runElab derive "Minutes" [Show, Eq, Ord]
+  namespace Minutes
+    %runElab derive "Minutes" [Show, Eq, Ord, RefinedInteger]
 
   ||| Number of seconds of a time `Duration`.
   public export
@@ -97,7 +99,8 @@ namespace Duration
     seconds : Integer
     {auto 0 valid : seconds > -1}
 
-  %runElab derive "Seconds" [Show, Eq, Ord]
+  namespace Seconds
+    %runElab derive "Seconds" [Show, Eq, Ord, RefinedInteger]
 
   ||| Fractions of a second of a time `Duration`.
   |||
@@ -109,7 +112,7 @@ namespace Duration
     fraction : Integer
     {auto 0 valid : fraction > -1}
 
-  %runElab derive "Fraction" [Show, Eq, Ord]
+  %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
 
   ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
   public export
