@@ -51,7 +51,7 @@ public export
 record Fraction where
   constructor MkFraction
   fraction : Integer
-  {auto 0 valid : fraction > -1}
+  {auto 0 valid : From 0 fraction}
 
 namespace Fraction
   %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
