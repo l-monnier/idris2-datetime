@@ -82,6 +82,12 @@ namespace Duration
   namespace Hours
     %runElab derive "Hours" [Show, Eq, Ord, RefinedInteger]
 
+  Semigroup Hours where
+    (MkHours h1) <+> (MkHours h2) = case refineHours (h1 + h2) of
+      Just hours => hours
+      -- This case cannot be reached as both numbers are equal or above 0.
+      Nothing    => MkHours 0
+
   ||| Number of minutes of a time `Duration`.
   public export
   record Minutes where
@@ -92,6 +98,12 @@ namespace Duration
   namespace Minutes
     %runElab derive "Minutes" [Show, Eq, Ord, RefinedInteger]
 
+  Semigroup Minutes where
+    (MkMinutes m1) <+> (MkMinutes m2) = case refineMinutes (m1 + m2) of
+      Just minutes => minutes
+      -- This case cannot be reached as both numbers are equal or above 0.
+      Nothing    => MkMinutes 0
+
   ||| Number of seconds of a time `Duration`.
   public export
   record Seconds where
@@ -101,6 +113,12 @@ namespace Duration
 
   namespace Seconds
     %runElab derive "Seconds" [Show, Eq, Ord, RefinedInteger]
+
+  Semigroup Seconds where
+    (MkSeconds s1) <+> (MkSeconds s2) = case refineSeconds (s1 + s2) of
+      Just seconds => seconds
+      -- This case cannot be reached as both numbers are equal or above 0.
+      Nothing    => MkSeconds 0
 
   ||| Fractions of a second of a time `Duration`.
   |||
@@ -113,6 +131,12 @@ namespace Duration
     {auto 0 valid : From 0 fraction}
 
   %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
+
+  Semigroup Duration.Fraction where
+    (MkFraction f1) <+> (MkFraction f2) = case Duration.refineFraction (f1 + f2) of
+      Just fraction => fraction
+      -- This case cannot be reached as both numbers are equal or above 0.
+      Nothing    => MkFraction 0
 
   ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
   public export
