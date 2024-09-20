@@ -77,7 +77,7 @@ namespace Duration
   record Hours where
     constructor MkHours
     hours : Integer
-    {auto 0 valid : hours > -1}
+    {auto 0 valid : From 0 hours}
 
   namespace Hours
     %runElab derive "Hours" [Show, Eq, Ord, RefinedInteger]
@@ -87,7 +87,7 @@ namespace Duration
   record Minutes where
     constructor MkMinutes
     minutes : Integer
-    {auto 0 valid : minutes > -1}
+    {auto 0 valid : From 0 minutes}
 
   namespace Minutes
     %runElab derive "Minutes" [Show, Eq, Ord, RefinedInteger]
@@ -97,7 +97,7 @@ namespace Duration
   record Seconds where
     constructor MkSeconds
     seconds : Integer
-    {auto 0 valid : seconds > -1}
+    {auto 0 valid : From 0 seconds}
 
   namespace Seconds
     %runElab derive "Seconds" [Show, Eq, Ord, RefinedInteger]
@@ -110,7 +110,7 @@ namespace Duration
   record Fraction where
     constructor MkFraction
     fraction : Integer
-    {auto 0 valid : fraction > -1}
+    {auto 0 valid : From 0 fraction}
 
   %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
 
