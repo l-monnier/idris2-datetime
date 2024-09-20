@@ -142,6 +142,7 @@ namespace Duration
   public export
   record Duration where
     constructor MkDuration
+    sign     : Sign
     hours    : Hours
     minutes  : Minutes
     seconds  : Seconds
