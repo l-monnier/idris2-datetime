@@ -45,7 +45,8 @@ namespace Second
 ||| A fraction of a second from 0.
 |||
 ||| This number is what comes after `,` or `.`.
-||| For example, if you provide `25`, then the fraction is `,25` (or `.25`).
+||| For example, if you provide `25`, then the fraction part is `,25`
+||| (or `.25`).
 public export
 record Fraction where
   constructor MkFraction
@@ -123,7 +124,8 @@ namespace Duration
   ||| Fractions of a second of a time `Duration`.
   |||
   ||| This number is what comes after `,` or `.`.
-  ||| For example, if you provide `25`, then the fraction is `,25` (or `.25`).
+  ||| For example, if you provide `25`, then the fraction part is `,25`
+  ||| (or `.25`).
   public export
   record Fraction where
     constructor MkFraction
