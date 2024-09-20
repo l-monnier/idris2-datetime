@@ -149,6 +149,15 @@ namespace Duration
 
   %runElab derive "Duration" [Show, Eq, Ord]
 
+  ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
+  public export
+  record OffsetDuration where
+    constructor MkOffsetDuration
+    sign     : Sign
+    duration : Duration
+
+  %runElab derive "OffsetDuration" [Show, Eq, Ord]
+
 namespace Offset
 
   ||| Number of hour of an UTC offset.
