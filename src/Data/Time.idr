@@ -45,16 +45,21 @@ namespace Second
 ||| A fraction of a second from 0.
 |||
 ||| This number is what comes after `,` or `.`.
-||| For example, if you provide `25`, then the fraction part is `,25`
+||| For example, if you provide `0.25`, then the fraction part is `,25`
 ||| (or `.25`).
 public export
 record Fraction where
   constructor MkFraction
-  fraction : Integer
-  {auto 0 valid : From 0 fraction}
+  fraction : Double
+  {auto 0 valid : Integer.From 0 (cast $ floor fraction)}
 
 namespace Fraction
-  %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
+  %runElab derive "Fraction" [Show, Eq, Ord]
+
+  refineFraction : Double -> Maybe Fraction
+  refineFraction fraction = case hdec0 {p = Integer.From 0} (cast $ floor fraction) of
+    Just0 _  => Just (MkFraction fraction)
+    Nothing0 => Nothing
 
 ||| Sign of an UTC `Offset` or of an offset `Duration`.
 |||
@@ -124,15 +129,20 @@ namespace Duration
   ||| Fractions of a second of a time `Duration`.
   |||
   ||| This number is what comes after `,` or `.`.
-  ||| For example, if you provide `25`, then the fraction part is `,25`
+  ||| For example, if you provide `0.25`, then the fraction part is `,25`
   ||| (or `.25`).
   public export
   record Fraction where
     constructor MkFraction
-    fraction : Integer
-    {auto 0 valid : From 0 fraction}
+    fraction : Double
+    {auto 0 valid : Integer.From 0 (cast $ floor fraction)}
 
-  %runElab derive "Fraction" [Show, Eq, Ord, RefinedInteger]
+  %runElab derive "Fraction" [Show, Eq, Ord]
+
+  refineFraction : Double -> Maybe Duration.Fraction
+  refineFraction fraction = case hdec0 {p = Integer.From 0} (cast $ floor fraction) of
+    Just0 _  => Just (MkFraction fraction)
+    Nothing0 => Nothing
 
   Semigroup Duration.Fraction where
     (MkFraction f1) <+> (MkFraction f2) = case Duration.refineFraction (f1 + f2) of
