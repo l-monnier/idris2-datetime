@@ -76,91 +76,105 @@ Ord Sign where
   compare Plus  Minus = GT
   compare Minus Plus  = LT
 
+||| An `Integer` with the constraints of a natural number.
+public export
+record Natural where
+  constructor MkNatural
+  n : Integer
+  {auto 0 valid : From 0 n}
+
+namespace Natural
+  %runElab derive "Natural" [Show, Eq, Ord, RefinedInteger]
+
+||| Integers lower than `0` will be converted to `0`.
+public export
+Num Natural where
+
+  fromInteger x = case refineNatural x of
+    Just n => n
+    Nothing => 0
+
+  (MkNatural n1) + (MkNatural n2) = case refineNatural (n1 + n2) of
+    Just n => n
+    -- This case is never reached as natural numbers not below 0.
+    Nothing => 0
+
+  (MkNatural n1) * (MkNatural n2) = case refineNatural (n1 * n2) of
+    Just n => n
+    -- This case is never reached as natural numbers are not below 0.
+    Nothing => 0
+
+||| `Double`s part of the right half-open unit interval [0,1).
+|||
+||| Only values from 0 (included) and lower than 1 are accepted.
+public export
+record RightHalfOpenUI where
+  constructor MkRightHalfOpenUI
+  x : Double
+  -- TODO find a way to use `Equal` rather than `FromTo`.
+  {auto 0 valid : Integer.FromTo 0 0 (cast $ floor x)}
+
+namespace RightHalfOpenUI
+  %runElab derive "RightHalfOpenUI" [Show, Eq, Ord]
+
+refineRightHalfOpenUI : Double -> Maybe RightHalfOpenUI
+refineRightHalfOpenUI x = case hdec0 {p = Integer.FromTo 0 0} (cast $ floor x) of
+  Just0 _  => Just (MkRightHalfOpenUI x)
+  Nothing0 => Nothing
+
+public export
+Num RightHalfOpenUI where
+  -- TODO find out why Idris consider this function as potentially not total...
+  fromInteger x = assert_total $ case refineRightHalfOpenUI (cast x) of
+    Just y => y
+    Nothing => 0
+
+  (MkRightHalfOpenUI d1) + (MkRightHalfOpenUI d2) =
+    case refineRightHalfOpenUI (d1 + d2) of
+      Just d => d
+      -- This case is never reached as non-negative numbers are not below 0.
+      Nothing => 0
+
+  (MkRightHalfOpenUI d1) * (MkRightHalfOpenUI d2) =
+    case refineRightHalfOpenUI (d1 * d2) of
+      Just d => d
+      -- This case is never reached as non-negative numbers are not below 0.
+      Nothing => 0
+
 namespace Duration
-
-  ||| Number of hours of a time `Duration`.
-  public export
-  record Hours where
-    constructor MkHours
-    hours : Integer
-    {auto 0 valid : From 0 hours}
-
-  namespace Hours
-    %runElab derive "Hours" [Show, Eq, Ord, RefinedInteger]
-
-  Semigroup Hours where
-    (MkHours h1) <+> (MkHours h2) = case refineHours (h1 + h2) of
-      Just hours => hours
-      -- This case cannot be reached as both numbers are equal or above 0.
-      Nothing    => MkHours 0
-
-  ||| Number of minutes of a time `Duration`.
-  public export
-  record Minutes where
-    constructor MkMinutes
-    minutes : Integer
-    {auto 0 valid : From 0 minutes}
-
-  namespace Minutes
-    %runElab derive "Minutes" [Show, Eq, Ord, RefinedInteger]
-
-  Semigroup Minutes where
-    (MkMinutes m1) <+> (MkMinutes m2) = case refineMinutes (m1 + m2) of
-      Just minutes => minutes
-      -- This case cannot be reached as both numbers are equal or above 0.
-      Nothing    => MkMinutes 0
-
-  ||| Number of seconds of a time `Duration`.
-  public export
-  record Seconds where
-    constructor MkSeconds
-    seconds : Integer
-    {auto 0 valid : From 0 seconds}
-
-  namespace Seconds
-    %runElab derive "Seconds" [Show, Eq, Ord, RefinedInteger]
-
-  Semigroup Seconds where
-    (MkSeconds s1) <+> (MkSeconds s2) = case refineSeconds (s1 + s2) of
-      Just seconds => seconds
-      -- This case cannot be reached as both numbers are equal or above 0.
-      Nothing    => MkSeconds 0
-
-  ||| Fractions of a second of a time `Duration`.
-  |||
-  ||| This number is what comes after `,` or `.`.
-  ||| For example, if you provide `0.25`, then the fraction part is `,25`
-  ||| (or `.25`).
-  public export
-  record Fraction where
-    constructor MkFraction
-    fraction : Double
-    {auto 0 valid : Integer.From 0 (cast $ floor fraction)}
-
-  %runElab derive "Fraction" [Show, Eq, Ord]
-
-  refineFraction : Double -> Maybe Duration.Fraction
-  refineFraction fraction = case hdec0 {p = Integer.From 0} (cast $ floor fraction) of
-    Just0 _  => Just (MkFraction fraction)
-    Nothing0 => Nothing
-
-  Semigroup Duration.Fraction where
-    (MkFraction f1) <+> (MkFraction f2) = case Duration.refineFraction (f1 + f2) of
-      Just fraction => fraction
-      -- This case cannot be reached as both numbers are equal or above 0.
-      Nothing    => MkFraction 0
 
   ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
   public export
   record Duration where
     constructor MkDuration
     sign     : Sign
-    hours    : Hours
-    minutes  : Minutes
-    seconds  : Seconds
-    fraction : Duration.Fraction
+
+    hours    : Natural
+    minutes  : Natural
+    seconds  : Natural
+
+    ||| Fractions of a second of a time `Duration`.
+    |||
+    ||| This number is what comes after `,` or `.`.
+    ||| For example, if you provide `0.25`, then the fraction part is `,25`
+    ||| (or `.25`).
+    fraction : RightHalfOpenUI
 
   %runElab derive "Duration" [Show, Eq, Ord]
+
+  refineDuration :
+       Sign
+    -> (hours : Integer)
+    -> (minutes : Integer)
+    -> (seconds : Integer)
+    -> (fraction : Double)
+    -> Maybe Duration
+  refineDuration sign hours minutes seconds fraction = do
+    hours' <- refineNatural hours
+    minutes' <- refineNatural minutes
+    seconds' <- refineNatural seconds
+    fraction <- refineRightHalfOpenUI fraction
+    pure $ MkDuration sign hours' minutes' seconds' fraction
 
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
