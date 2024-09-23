@@ -156,8 +156,23 @@ Num RightHalfOpenUI where
 
   (MkRightHalfOpenUI d1) * (MkRightHalfOpenUI d2) =
     case refineRightHalfOpenUI (d1 * d2) of
+      Just d  => d
+      -- This case is never reached as multiplication of values of this interval
+      -- is always within the interval.
+      Nothing => 0
+
+||| As the unit interval cannot be negative, results are capped at 0.
+|||
+||| `negate` always returns `0`.
+||| `(-)` returns `0` if the result of the substraction would be below 0.
+public export
+Neg RightHalfOpenUI where
+
+  negate _ = 0
+
+  (MkRightHalfOpenUI d1) - (MkRightHalfOpenUI d2) =
+    case refineRightHalfOpenUI (d1 - d2) of
       Just d => d
-      -- This case is never reached as non-negative numbers are not below 0.
       Nothing => 0
 
 namespace Duration
