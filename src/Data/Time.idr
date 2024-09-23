@@ -129,6 +129,7 @@ record RightHalfOpenUI where
 namespace RightHalfOpenUI
   %runElab derive "RightHalfOpenUI" [Show, Eq, Ord]
 
+public export
 refineRightHalfOpenUI : Double -> Maybe RightHalfOpenUI
 refineRightHalfOpenUI x = case hdec0 {p = Integer.FromTo 0 0} (cast $ floor x) of
   Just0 _  => Just (MkRightHalfOpenUI x)
