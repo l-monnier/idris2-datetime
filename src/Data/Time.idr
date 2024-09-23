@@ -147,6 +147,7 @@ namespace Duration
   public export
   record Duration where
     constructor MkDuration
+    ||| `Plus` (standing for the "+" sign) or `Minus` (standing for the "−" sign).
     sign     : Sign
 
     hours    : Natural
