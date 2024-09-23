@@ -135,17 +135,23 @@ refineRightHalfOpenUI x = case hdec0 {p = Integer.FromTo 0 0} (cast $ floor x) o
   Just0 _  => Just (MkRightHalfOpenUI x)
   Nothing0 => Nothing
 
+||| Values outside bounds are converted back to `0`.
+|||
+||| `fromInteger` always returns `0`.
+||| `(+)` returns a value different than `0` only if the result
+||| is greater than `0` and below `1`.
+|||
+||| On the other hand, no returned values are converted for `(*)`.
+||| Multiplication of values within the unit interval will always
+||| result in a value within that same interval.
 public export
 Num RightHalfOpenUI where
-  -- TODO find out why Idris consider this function as potentially not total...
-  fromInteger x = assert_total $ case refineRightHalfOpenUI (cast x) of
-    Just y => y
-    Nothing => 0
+
+  fromInteger _ = MkRightHalfOpenUI 0
 
   (MkRightHalfOpenUI d1) + (MkRightHalfOpenUI d2) =
     case refineRightHalfOpenUI (d1 + d2) of
-      Just d => d
-      -- This case is never reached as non-negative numbers are not below 0.
+      Just d  => d
       Nothing => 0
 
   (MkRightHalfOpenUI d1) * (MkRightHalfOpenUI d2) =
