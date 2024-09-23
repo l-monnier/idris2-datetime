@@ -91,16 +91,16 @@ public export
 Num Natural where
 
   fromInteger x = case refineNatural x of
-    Just n => n
+    Just n  => n
     Nothing => 0
 
   (MkNatural n1) + (MkNatural n2) = case refineNatural (n1 + n2) of
-    Just n => n
+    Just n  => n
     -- This case is never reached as natural numbers not below 0.
     Nothing => 0
 
   (MkNatural n1) * (MkNatural n2) = case refineNatural (n1 * n2) of
-    Just n => n
+    Just n  => n
     -- This case is never reached as natural numbers are not below 0.
     Nothing => 0
 
