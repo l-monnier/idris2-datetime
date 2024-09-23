@@ -104,6 +104,18 @@ Num Natural where
     -- This case is never reached as natural numbers are not below 0.
     Nothing => 0
 
+||| As natural numbers cannot be negative, results are capped at 0.
+|||
+||| `negate` always returns `0`.
+||| `(-)` returns `0` if the result of the substraction would be below 0.
+public export
+Neg Natural where
+  negate _ = MkNatural 0
+
+  (MkNatural n1) - (MkNatural n2) = case refineNatural (n1 - n2) of
+    Just n  => n
+    Nothing => 0
+
 ||| `Double`s part of the right half-open unit interval [0,1).
 |||
 ||| Only values from 0 (included) and lower than 1 are accepted.
