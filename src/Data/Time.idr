@@ -128,6 +128,14 @@ Integral Natural where
     -- This case cannot be reached.
     Nothing => 0
 
+private
+Cast Natural Integer where
+  cast (MkNatural x) = x
+
+private
+Cast Natural Double where
+  cast (MkNatural x) = cast x
+
 ||| `Double`s part of the right half-open unit interval [0,1).
 |||
 ||| Only values from 0 (included) and lower than 1 are accepted.
