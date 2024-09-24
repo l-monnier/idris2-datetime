@@ -235,6 +235,29 @@ namespace Duration
     fraction <- refineRightHalfOpenUI fraction
     pure $ MkDuration sign hours' minutes' seconds' fraction
 
+  ||| Normalises a `Duration`.
+  |||
+  ||| Minutes and seconds are capped at `59`.
+  ||| When above, hours and minutes are incremented accordingly.
+  normalise : Duration -> Duration
+  normalise (MkDuration sign h m s f) =
+    let s' := s `mod` 60
+        m2 := s `div` 60
+        m' := (m + m2) `mod` 60
+        h2 := (m + m2) `div` 60
+        h' := h + h2
+    in MkDuration sign h' m' s' f
+
+  ||| Converts a `Duration` to seconds.
+  toSeconds : Duration -> Double
+  toSeconds (MkDuration sign h m s f) =
+    case sign of
+      Plus  => seconds
+      Minus => -seconds
+    where
+      seconds : Double
+      seconds = cast (3600 * h + 60 * m + s) + cast f
+
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
   record OffsetDuration where
