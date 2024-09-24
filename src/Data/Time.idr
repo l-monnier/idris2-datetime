@@ -195,6 +195,10 @@ Neg RightHalfOpenUI where
       Just d => d
       Nothing => 0
 
+private
+Cast RightHalfOpenUI Double where
+  cast (MkRightHalfOpenUI x) = x
+
 namespace Duration
 
   ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
