@@ -116,6 +116,18 @@ Neg Natural where
     Just n  => n
     Nothing => 0
 
+Integral Natural where
+
+  (MkNatural n1) `div` (MkNatural n2) = case refineNatural (n1 `div` n2) of
+    Just n  => n
+    -- This case cannot be reached.
+    Nothing => 0
+
+  (MkNatural n1) `mod` (MkNatural n2) = case refineNatural (n1 `mod` n2) of
+    Just n  => n
+    -- This case cannot be reached.
+    Nothing => 0
+
 ||| `Double`s part of the right half-open unit interval [0,1).
 |||
 ||| Only values from 0 (included) and lower than 1 are accepted.
