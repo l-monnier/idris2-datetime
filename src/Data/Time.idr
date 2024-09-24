@@ -219,7 +219,7 @@ namespace Duration
     ||| (or `.25`).
     fraction : RightHalfOpenUI
 
-  %runElab derive "Duration" [Show, Eq, Ord]
+  %runElab derive "Duration" [Show]
 
   refineDuration :
        Sign
@@ -257,6 +257,24 @@ namespace Duration
     where
       seconds : Double
       seconds = cast (3600 * h + 60 * m + s) + cast f
+
+  ||| `Duration`s are converted to seconds before being compared.
+  |||
+  ||| This means that `Duration`s are equal if they represent the same amount
+  ||| of time. This does not imply that they are the same.
+  |||
+  ||| For example `(MkDuration 0 180 0 0) == (MkDuration 3 0 0 0) = True`.
+  ||| Both represent an amount of time of 3 hours.
+  Eq Duration where
+    d1 == d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = x == y
+
+  ||| `Duration`s are converted to seconds before being compared.
+  |||
+  ||| This is a similar behaviour as described for the `Eq` instance.
+  Ord Duration where
+    d1 < d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = x < y
 
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
