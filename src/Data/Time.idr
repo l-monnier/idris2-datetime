@@ -298,6 +298,28 @@ namespace Duration
     d1 < d2 with (toSeconds d1, toSeconds d2)
       _ | (x, y) = x < y
 
+  ||| For all `Num` operations, the returned `Duration` is normalised.
+  |||
+  ||| This means that seconds above `59` are converted to minutes,
+  ||| and minutes above `59` are converted to hours.
+  Num Duration where
+
+    fromInteger s =
+      let
+        sign       := if s < 0 then Minus else Plus
+        -- Always equal or greater than `0`.
+        absSeconds := abs s
+      in case refineNatural absSeconds of
+      Just seconds => normalise $ MkDuration sign 0 0 seconds 0
+      -- This case is never reached as `absSeconds` is always greater than `0`.
+      Nothing      => MkDuration Plus 0 0 0 0
+
+    d1 + d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = fromSeconds (x + y)
+
+    d1 * d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = fromSeconds (x * y)
+
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
   record OffsetDuration where
