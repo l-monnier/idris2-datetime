@@ -258,6 +258,28 @@ namespace Duration
       seconds : Double
       seconds = cast (3600 * h + 60 * m + s) + cast f
 
+  ||| Convert seconds expressed as a `Double` value to a `Duration`.
+  |||
+  ||| The `Duration` is normalised, meaning that seconds above `59` will be
+  ||| converted to minutes and minutes above `59` will be converted to hours.
+  fromSeconds : Double -> Duration
+  fromSeconds seconds =
+    let
+      sign         := if seconds < 1 then Minus else Plus
+      secondsAbs   := abs seconds
+      -- Always equals or greater than 0.
+      secondsWhole := floor secondsAbs
+      -- Always equals or greater than 0 and lower than 1.
+      fraction     := secondsAbs - secondsWhole
+
+      seconds' :=  refineNatural (cast secondsWhole)
+      fraction' := refineRightHalfOpenUI fraction
+    in case (seconds', fraction') of
+        (Just s, Just f) => normalise (MkDuration sign 0 0 s f)
+        -- This case cannot be reached.
+        -- All `Double` seconds values lead to a valid `Duration`.
+        _                => MkDuration Plus 0 0 0 0
+
   ||| `Duration`s are converted to seconds before being compared.
   |||
   ||| This means that `Duration`s are equal if they represent the same amount
