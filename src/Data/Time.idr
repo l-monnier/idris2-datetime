@@ -54,7 +54,7 @@ record Fraction where
   {auto 0 valid : Integer.From 0 (cast $ floor fraction)}
 
 namespace Fraction
-  %runElab derive "Fraction" [Show, Eq, Ord]
+  %runElab derive "Fraction" [Show]
 
   refineFraction : Double -> Maybe Fraction
   refineFraction fraction = case hdec0 {p = Integer.From 0} (cast $ floor fraction) of
