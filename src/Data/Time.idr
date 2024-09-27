@@ -302,6 +302,7 @@ namespace Duration
   |||
   ||| This means that seconds above `59` are converted to minutes,
   ||| and minutes above `59` are converted to hours.
+  public export
   Num Duration where
 
     fromInteger s =
