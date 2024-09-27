@@ -321,6 +321,24 @@ namespace Duration
     d1 * d2 with (toSeconds d1, toSeconds d2)
       _ | (x, y) = fromSeconds (x * y)
 
+  public export
+  Neg Duration where
+
+    negate (MkDuration Plus  h m s f) = MkDuration Minus h m s f
+    negate (MkDuration Minus h m s f) = MkDuration Plus h m s f
+
+    d1 - d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = fromSeconds (x - y)
+
+  public export
+  Abs Duration where
+    abs (MkDuration _ h m s f) = MkDuration Plus h m s f
+
+  public export
+  Fractional Duration where
+    d1 / d2 with (toSeconds d1, toSeconds d2)
+      _ | (x, y) = fromSeconds (x / y)
+
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
   record OffsetDuration where
