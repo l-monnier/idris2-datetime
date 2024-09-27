@@ -280,6 +280,15 @@ namespace Duration
         -- All `Double` seconds values lead to a valid `Duration`.
         _                => MkDuration Plus 0 0 0 0
 
+  ||| Applies an operation to `Duration`.
+  |||
+  ||| This prevents code duplication in the implemtation
+  ||| of various interfaces of `Duration` such as `Eq` and `Num`.
+  private
+  applyOp : (Double -> Double -> a) -> Duration -> Duration -> a
+  applyOp op d1 d2 with (toSeconds d1, toSeconds d2)
+    _ | (x, y) = op x y
+
   ||| `Duration`s are converted to seconds before being compared.
   |||
   ||| This means that `Duration`s are equal if they represent the same amount
@@ -288,15 +297,13 @@ namespace Duration
   ||| For example `(MkDuration 0 180 0 0) == (MkDuration 3 0 0 0) = True`.
   ||| Both represent an amount of time of 3 hours.
   Eq Duration where
-    d1 == d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = x == y
+    (==) = applyOp (==)
 
   ||| `Duration`s are converted to seconds before being compared.
   |||
   ||| This is a similar behaviour as described for the `Eq` instance.
   Ord Duration where
-    d1 < d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = x < y
+    (<) = applyOp (<)
 
   ||| For all `Num` operations, the returned `Duration` is normalised.
   |||
@@ -315,11 +322,9 @@ namespace Duration
       -- This case is never reached as `absSeconds` is always greater than `0`.
       Nothing      => MkDuration Plus 0 0 0 0
 
-    d1 + d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = fromSeconds (x + y)
+    (+) d1 d2 = fromSeconds $ applyOp (+) d1 d2
 
-    d1 * d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = fromSeconds (x * y)
+    (*) d1 d2 = fromSeconds $ applyOp (*) d1 d2
 
   public export
   Neg Duration where
@@ -327,8 +332,7 @@ namespace Duration
     negate (MkDuration Plus  h m s f) = MkDuration Minus h m s f
     negate (MkDuration Minus h m s f) = MkDuration Plus h m s f
 
-    d1 - d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = fromSeconds (x - y)
+    (-) d1 d2 = fromSeconds $ applyOp (-) d1 d2
 
   public export
   Abs Duration where
@@ -336,8 +340,7 @@ namespace Duration
 
   public export
   Fractional Duration where
-    d1 / d2 with (toSeconds d1, toSeconds d2)
-      _ | (x, y) = fromSeconds (x / y)
+    (/) d1 d2 = fromSeconds $ applyOp (/) d1 d2
 
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
