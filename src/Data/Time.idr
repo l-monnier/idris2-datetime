@@ -230,8 +230,8 @@ namespace Offset
 
   ||| Number of minutes for an UTC offset of a time in complement of an hour.
   |||
-  ||| At the time being, only values 0, 30 and 45 have been used.
-  ||| For consistency, the value 15 has been added here.
+  ||| At the time being, only values `0`, `30` and `45` have been used.
+  ||| For consistency, the value `15` has been added here.
   public export
   record Minutes where
     constructor MkMinutes
