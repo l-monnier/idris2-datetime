@@ -76,217 +76,73 @@ Ord Sign where
   compare Plus  Minus = GT
   compare Minus Plus  = LT
 
-||| An `Integer` with the constraints of a natural number.
-public export
-record Natural where
-  constructor MkNatural
-  n : Integer
-  {auto 0 valid : From 0 n}
-
-namespace Natural
-  %runElab derive "Natural" [Show, Eq, Ord, RefinedInteger]
-
-||| Integers lower than `0` will be converted to `0`.
-public export
-Num Natural where
-
-  fromInteger x = case refineNatural x of
-    Just n  => n
-    Nothing => 0
-
-  (MkNatural n1) + (MkNatural n2) = case refineNatural (n1 + n2) of
-    Just n  => n
-    -- This case is never reached as natural numbers not below 0.
-    Nothing => 0
-
-  (MkNatural n1) * (MkNatural n2) = case refineNatural (n1 * n2) of
-    Just n  => n
-    -- This case is never reached as natural numbers are not below 0.
-    Nothing => 0
-
-||| As natural numbers cannot be negative, results are capped at 0.
-|||
-||| `negate` always returns `0`.
-||| `(-)` returns `0` if the result of the substraction would be below 0.
-public export
-Neg Natural where
-  negate _ = MkNatural 0
-
-  (MkNatural n1) - (MkNatural n2) = case refineNatural (n1 - n2) of
-    Just n  => n
-    Nothing => 0
-
-Integral Natural where
-
-  (MkNatural n1) `div` (MkNatural n2) = case refineNatural (n1 `div` n2) of
-    Just n  => n
-    -- This case cannot be reached.
-    Nothing => 0
-
-  (MkNatural n1) `mod` (MkNatural n2) = case refineNatural (n1 `mod` n2) of
-    Just n  => n
-    -- This case cannot be reached.
-    Nothing => 0
-
-private
-Cast Natural Integer where
-  cast (MkNatural x) = x
-
-private
-Cast Natural Double where
-  cast (MkNatural x) = cast x
-
-||| `Double`s part of the right half-open unit interval [0,1).
-|||
-||| Only values from 0 (included) and lower than 1 are accepted.
-public export
-record RightHalfOpenUI where
-  constructor MkRightHalfOpenUI
-  x : Double
-  -- TODO find a way to use `Equal` rather than `FromTo`.
-  {auto 0 valid : Integer.FromTo 0 0 (cast $ floor x)}
-
-namespace RightHalfOpenUI
-  %runElab derive "RightHalfOpenUI" [Show, Eq, Ord]
-
-public export
-refineRightHalfOpenUI : Double -> Maybe RightHalfOpenUI
-refineRightHalfOpenUI x = case hdec0 {p = Integer.FromTo 0 0} (cast $ floor x) of
-  Just0 _  => Just (MkRightHalfOpenUI x)
-  Nothing0 => Nothing
-
-||| Values outside bounds are converted back to `0`.
-|||
-||| `fromInteger` always returns `0`.
-||| `(+)` returns a value different than `0` only if the result
-||| is greater than `0` and below `1`.
-|||
-||| On the other hand, no returned values are converted for `(*)`.
-||| Multiplication of values within the unit interval will always
-||| result in a value within that same interval.
-public export
-Num RightHalfOpenUI where
-
-  fromInteger _ = MkRightHalfOpenUI 0
-
-  (MkRightHalfOpenUI d1) + (MkRightHalfOpenUI d2) =
-    case refineRightHalfOpenUI (d1 + d2) of
-      Just d  => d
-      Nothing => 0
-
-  (MkRightHalfOpenUI d1) * (MkRightHalfOpenUI d2) =
-    case refineRightHalfOpenUI (d1 * d2) of
-      Just d  => d
-      -- This case is never reached as multiplication of values of this interval
-      -- is always within the interval.
-      Nothing => 0
-
-||| As the unit interval cannot be negative, results are capped at 0.
-|||
-||| `negate` always returns `0`.
-||| `(-)` returns `0` if the result of the substraction would be below 0.
-public export
-Neg RightHalfOpenUI where
-
-  negate _ = 0
-
-  (MkRightHalfOpenUI d1) - (MkRightHalfOpenUI d2) =
-    case refineRightHalfOpenUI (d1 - d2) of
-      Just d => d
-      Nothing => 0
-
-private
-Cast RightHalfOpenUI Double where
-  cast (MkRightHalfOpenUI x) = x
-
 namespace Duration
 
-  ||| A time `Duration` as per ISO 8601 PTnHnMnS.sss format.
+  ||| A time `Duration` in the format PTnHnMnS.sss.
+  |||
+  ||| Note that each n can be negative, meaning that individual duration units
+  ||| can be below `0`.
+  ||| This is a per the "composite representation" format described in
+  ||| ISO 8601-2:2019.
   public export
   record Duration where
     constructor MkDuration
-    ||| `Plus` (standing for the "+" sign) or `Minus` (standing for the "−" sign).
-    sign     : Sign
-
-    hours    : Natural
-    minutes  : Natural
-    seconds  : Natural
-
-    ||| Fractions of a second of a time `Duration`.
-    |||
-    ||| This number is what comes after `,` or `.`.
-    ||| For example, if you provide `0.25`, then the fraction part is `,25`
-    ||| (or `.25`).
-    fraction : RightHalfOpenUI
+    hours    : Integer
+    minutes  : Integer
+    seconds  : Double
 
   %runElab derive "Duration" [Show]
 
-  refineDuration :
-       Sign
-    -> (hours : Integer)
-    -> (minutes : Integer)
-    -> (seconds : Integer)
-    -> (fraction : Double)
-    -> Maybe Duration
-  refineDuration sign hours minutes seconds fraction = do
-    hours' <- refineNatural hours
-    minutes' <- refineNatural minutes
-    seconds' <- refineNatural seconds
-    fraction <- refineRightHalfOpenUI fraction
-    pure $ MkDuration sign hours' minutes' seconds' fraction
-
-  ||| Normalises a `Duration`.
-  |||
-  ||| Minutes and seconds are capped at `59`.
-  ||| When above, hours and minutes are incremented accordingly.
-  normalise : Duration -> Duration
-  normalise (MkDuration sign h m s f) =
-    let s' := s `mod` 60
-        m2 := s `div` 60
-        m' := (m + m2) `mod` 60
-        h2 := (m + m2) `div` 60
-        h' := h + h2
-    in MkDuration sign h' m' s' f
-
   ||| Converts a `Duration` to seconds.
   toSeconds : Duration -> Double
-  toSeconds (MkDuration sign h m s f) =
-    case sign of
-      Plus  => seconds
-      Minus => -seconds
-    where
-      seconds : Double
-      seconds = cast (3600 * h + 60 * m + s) + cast f
+  toSeconds (MkDuration h m s) = cast (3600 * h + 60 * m) + s
 
-  ||| Convert seconds expressed as a `Double` value to a `Duration`.
+  ||| Converts seconds to a `Duration`.
   |||
   ||| The `Duration` is normalised, meaning that seconds above `59` will be
   ||| converted to minutes and minutes above `59` will be converted to hours.
+  |||
+  ||| This also applies if seconds are negative: seconds below `59` will be
+  ||| to minutes and minutes below `59` will be converted to hours.
   fromSeconds : Double -> Duration
   fromSeconds seconds =
     let
-      sign         := if seconds < 1 then Minus else Plus
-      secondsAbs   := abs seconds
-      -- Always equals or greater than 0.
-      secondsWhole := floor secondsAbs
-      -- Always equals or greater than 0 and lower than 1.
-      fraction     := secondsAbs - secondsWhole
+      -- `mod` and `div` are implemented in the mathematical form.
+      -- This means that for negative numbers, the remaining will
+      -- remain the same regardless of the sign of the divisor.
+      --
+      -- For example, `mod (-10) (-60) == 50`.
+      -- In our case we want `-10`. To achieve our goal, we
+      -- use an absolute value and negate the end result.
+      absSec := abs seconds
 
-      seconds' :=  refineNatural (cast secondsWhole)
-      fraction' := refineRightHalfOpenUI fraction
-    in case (seconds', fraction') of
-        (Just s, Just f) => normalise (MkDuration sign 0 0 s f)
-        -- This case cannot be reached.
-        -- All `Double` seconds values lead to a valid `Duration`.
-        _                => MkDuration Plus 0 0 0 0
+      absSecInt : Integer
+      absSecInt = cast absSec
 
-  ||| Applies an operation to `Duration`.
+      sign : (Eq a, Neg a) => a -> a
+      sign x = if seconds < 0 && x /= 0 then negate x else x
+
+      s := sign $ cast (absSecInt `mod` 60) + (absSec - cast absSecInt)
+      min := absSecInt `div` 60
+      m := sign $ min `mod` 60
+      h := sign $ min `div` 60
+    in
+      MkDuration h m s
+
+  ||| Normalises a `Duration`.
   |||
-  ||| This prevents code duplication in the implemtation
-  ||| of various interfaces of `Duration` such as `Eq` and `Num`.
+  ||| Minutes and seconds are between `0` and `59`.
+  ||| When below or above, hours and minutes are adjusted accordingly.
+  normalise : Duration -> Duration
+  normalise = fromSeconds . toSeconds
+
+  ||| Applies a comparison to `Duration`.
+  |||
+  ||| This prevents code duplication in the implementation
+  ||| of the `Eq` and `Ord` interfaces.
   private
-  applyOp : (Double -> Double -> a) -> Duration -> Duration -> a
-  applyOp op d1 d2 with (toSeconds d1, toSeconds d2)
+  compare : (Double -> Double -> Bool) -> Duration -> Duration -> Bool
+  compare op d1 d2 with (toSeconds d1, toSeconds d2)
     _ | (x, y) = op x y
 
   ||| `Duration`s are converted to seconds before being compared.
@@ -297,13 +153,13 @@ namespace Duration
   ||| For example `(MkDuration 0 180 0 0) == (MkDuration 3 0 0 0) = True`.
   ||| Both represent an amount of time of 3 hours.
   Eq Duration where
-    (==) = applyOp (==)
+    (==) = compare (==)
 
   ||| `Duration`s are converted to seconds before being compared.
   |||
   ||| This is a similar behaviour as described for the `Eq` instance.
   Ord Duration where
-    (<) = applyOp (<)
+    (<) = compare (<)
 
   ||| For all `Num` operations, the returned `Duration` is normalised.
   |||
@@ -312,41 +168,34 @@ namespace Duration
   public export
   Num Duration where
 
-    fromInteger s =
-      let
-        sign       := if s < 0 then Minus else Plus
-        -- Always equal or greater than `0`.
-        absSeconds := abs s
-      in case refineNatural absSeconds of
-      Just seconds => normalise $ MkDuration sign 0 0 seconds 0
-      -- This case is never reached as `absSeconds` is always greater than `0`.
-      Nothing      => MkDuration Plus 0 0 0 0
+    fromInteger = fromSeconds . cast
 
-    (+) d1 d2 = fromSeconds $ applyOp (+) d1 d2
+    (MkDuration h1 m1 s1) + (MkDuration h2 m2 s2) = MkDuration (h1 + h2) (m1 + m2) (s1 + s2)
 
-    (*) d1 d2 = fromSeconds $ applyOp (*) d1 d2
+    (MkDuration h1 m1 s1) * (MkDuration h2 m2 s2) = MkDuration (h1 * h2) (m1 * m2) (s1 * s2)
 
+  ||| Note that durations of 0 are always positive.
   public export
   Neg Duration where
 
-    negate (MkDuration Plus  h m s f) = MkDuration Minus h m s f
-    negate (MkDuration Minus h m s f) = MkDuration Plus h m s f
+    negate (MkDuration h m s) = MkDuration (-h) (-m) (-s)
 
-    (-) d1 d2 = fromSeconds $ applyOp (-) d1 d2
+    (MkDuration h1 m1 s1) - (MkDuration h2 m2 s2) = MkDuration (h1 - h2) (m1 - m2) (s1 - s2)
 
+  ||| `Duration`s get normalised when getting their absolute value.
   public export
   Abs Duration where
-    abs (MkDuration _ h m s f) = MkDuration Plus h m s f
+    abs = normalise . fromSeconds . abs . toSeconds
 
+  ||| `Duration`s get normalised when being divided.
   public export
   Fractional Duration where
-    (/) d1 d2 = fromSeconds $ applyOp (/) d1 d2
+    d1 / d2 = normalise $ fromSeconds $ toSeconds d1 / toSeconds d2
 
   ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
   public export
   record OffsetDuration where
     constructor MkOffsetDuration
-    sign     : Sign
     duration : Duration
 
   %runElab derive "OffsetDuration" [Show, Eq, Ord]
