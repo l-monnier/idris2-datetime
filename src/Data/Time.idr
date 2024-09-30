@@ -161,10 +161,10 @@ namespace Duration
   Ord Duration where
     (<) = compare (<)
 
-  ||| For all `Num` operations, the returned `Duration` is normalised.
+  ||| For the `(*)` operation, the returned `Duration` is normalised.
   |||
-  ||| This means that seconds above `59` are converted to minutes,
-  ||| and minutes above `59` are converted to hours.
+  ||| To the contrary, for the `(+)` operation, each duration unit
+  ||| are individually added, meaning that there is no normalisation.
   public export
   Num Duration where
 
@@ -172,7 +172,7 @@ namespace Duration
 
     (MkDuration h1 m1 s1) + (MkDuration h2 m2 s2) = MkDuration (h1 + h2) (m1 + m2) (s1 + s2)
 
-    (MkDuration h1 m1 s1) * (MkDuration h2 m2 s2) = MkDuration (h1 * h2) (m1 * m2) (s1 * s2)
+    d1 * d2 = fromSeconds (toSeconds d1 * toSeconds d2)
 
   ||| Note that durations of 0 are always positive.
   public export
