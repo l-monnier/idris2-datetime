@@ -350,7 +350,7 @@ namespace Offset
   public export
   toSeconds : Offset -> Seconds
   toSeconds (MkOffset sign h m) =
-    cast $ applySign sign (3600 * cast h.hours + 60 * cast m.minutes)
+    cast $ applySign sign (3600 * h.hours + 60 * m.minutes)
 
 namespace TimeZone
 
