@@ -323,3 +323,33 @@ namespace Offset
     }
 
   %runElab derive "Offset" [Show, Eq, Ord]
+
+  public export
+  refineOffset : Sign -> Offset.Hours -> Offset.Minutes -> Maybe Offset
+  refineOffset sign hours minutes =
+    let
+      test : Bits8
+      test = boolToBits8 $ validOffset sign hours minutes
+    in
+    case hdec0 {p = Bits8.FromTo 1 1} test of
+      Just0 _  => Just (MkOffset sign hours minutes)
+      Nothing0 => Nothing
+
+  ||| Converts an `Offset` to a `Duration`.
+  public export
+  toDuration : Offset -> Duration
+  toDuration (MkOffset sign hours minutes) =
+    let
+      nH : Integer
+      nH = cast $ applySign sign  hours.hours
+
+      nM : Integer
+      nM := cast $ applySign sign minutes.minutes
+    in
+    MkDuration nH nM 0
+
+  ||| Concerts an `Offset` to seconds.
+  public export
+  toSeconds : Offset -> Double
+  toSeconds (MkOffset sign h m) =
+    cast $ applySign sign (3600 * cast h.hours + 60 * cast m.minutes)
