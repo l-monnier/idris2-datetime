@@ -192,14 +192,6 @@ namespace Duration
   Fractional Duration where
     d1 / d2 = normalise $ fromSeconds $ toSeconds d1 / toSeconds d2
 
-  ||| An UTC offset expressed as a `Duration` as per ISO 8601-2:2019.
-  public export
-  record OffsetDuration where
-    constructor MkOffsetDuration
-    duration : Duration
-
-  %runElab derive "OffsetDuration" [Show, Eq, Ord]
-
 namespace Offset
 
   ||| Number of hour of an UTC offset.
