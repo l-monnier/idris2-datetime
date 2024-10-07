@@ -223,10 +223,8 @@ namespace Duration
   Ord Duration where
     (<) = compare (<)
 
-  ||| For the `(*)` operation, the returned `Duration` is normalised.
-  |||
-  ||| To the contrary, for the `(+)` operation, each duration unit
-  ||| are individually added, meaning that there is no normalisation.
+  ||| For the `(+)` operation, duration units are individually added.
+  ||| This means that there is no normalisation.
   public export
   Num Duration where
 
@@ -236,7 +234,8 @@ namespace Duration
 
     d1 * d2 = fromSeconds (toSeconds d1 * toSeconds d2)
 
-  ||| Note that durations of 0 are always positive.
+  ||| For the `(-)` operation, duration units are individually added.
+  ||| This means that there is no normalisation.
   public export
   Neg Duration where
 
