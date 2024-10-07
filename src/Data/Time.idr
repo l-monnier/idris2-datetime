@@ -87,9 +87,9 @@ namespace Duration
   public export
   record Duration where
     constructor MkDuration
-    hours    : Integer
-    minutes  : Integer
-    seconds  : Double
+    hours   : Integer
+    minutes : Integer
+    seconds : Double
 
   %runElab derive "Duration" [Show]
 
