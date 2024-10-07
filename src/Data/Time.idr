@@ -30,17 +30,71 @@ record Minute where
 namespace Minute
   %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
 
-||| A second ranging from 0 to 60.
+-- TODO use Seconds instead of Double for more clarity.
+public export
+Seconds : Type
+Seconds = Double
+
+||| A second expressed as a `Double` ranging from `0.0` to `60.0`.
 |||
-||| `60` is used for leap seconds.
+||| `60.0` is used for leap seconds.
 public export
 record Second where
   constructor MkSecond
-  second : Bits8
-  {auto 0 valid : FromTo 0 60 second}
+  second : Seconds
+  {auto 0 valid : Integer.FromTo 0 60 (cast $ floor second)}
+
+
+public export
+refineSecond : Double -> Maybe Second
+refineSecond s = case hdec0 {p = Integer.FromTo 0 60} (cast $ floor s) of
+  Just0 _  => Just (MkSecond s)
+  Nothing0 => Nothing
 
 namespace Second
-  %runElab derive "Second" [Show, Eq, Ord, RefinedInteger]
+  %runElab derive "Second" [Show, Eq, Ord]
+
+  ||| Returns a `Second` from the provided `Double`.
+  |||
+  ||| At the exception of leap seconds, seconds range from `0` and `59`.
+  ||| Consequently, any value below or above will get converted to the remaining
+  ||| of its modulo `60`.
+  |||
+  ||| For example:
+  |||
+  ||| - `70.1` will get converted to `10.1`
+  ||| - `(-10)` will get converted to `50.0`
+  ||| - `60` will not get converted and will remain `60`
+  public export
+  fromDouble : Double -> Second
+  fromDouble x =
+    let
+      sec : Integer -> Double
+      sec 60 = 60
+      sec s  = cast (s `mod` 60) + (x - cast s)
+    in
+    case refineSecond (sec $ cast x) of
+      Just s => s
+      -- This case cannot be reached as `sec` will always be
+      -- within `0` and `60`.
+      Nothing => MkSecond 0
+
+||| At the exception of leap seconds, seconds range from `0` and `59`.
+||| Consequently, any result below or above will get converted to the remaining
+||| of its modulo `60`.
+|||
+||| For example:
+|||
+||| - `70.1` will get converted to `10.1`
+||| - `(-10)` will get converted to `50.0`
+||| - `60` will get converted to `0.0`
+public export
+Num Second where
+  fromInteger x = Second.fromDouble (cast x)
+
+  (MkSecond s1) + (MkSecond s2) = Second.fromDouble (s1 + s2)
+
+  (MkSecond s1) * (MkSecond s2) = Second.fromDouble (s1 * s2)
 
 ||| A fraction of a second from 0.
 |||
