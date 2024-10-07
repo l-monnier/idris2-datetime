@@ -306,6 +306,11 @@ namespace Offset
   validOffset Minus 0 0 = False
   validOffset _     _ _ = True
 
+  private
+  boolToBits8 : Bool -> Bits8
+  boolToBits8 True  = 1
+  boolToBits8 False = 0
+
   ||| An UTC offset for a given time.
   public export
   record Offset where
