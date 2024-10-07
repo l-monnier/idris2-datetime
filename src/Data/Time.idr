@@ -44,7 +44,6 @@ record Second where
   second : Seconds
   {auto 0 valid : Integer.FromTo 0 60 (cast $ floor second)}
 
-
 public export
 refineSecond : Seconds -> Maybe Second
 refineSecond s = case hdec0 {p = Integer.FromTo 0 60} (cast $ floor s) of
