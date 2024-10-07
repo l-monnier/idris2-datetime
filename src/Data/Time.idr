@@ -2,7 +2,6 @@
 module Data.Time
 
 import Data.Refined
-import Data.Refined.Bits8
 import Data.Refined.Integer
 import Derive.Prelude
 import Derive.Refined
@@ -14,7 +13,7 @@ import Derive.Refined
 public export
 record Hour where
   constructor MkHour
-  hour : Bits8
+  hour : Integer
   {auto 0 valid : FromTo 0 23 hour}
 
 namespace Hour
@@ -24,7 +23,7 @@ namespace Hour
 public export
 record Minute where
   constructor MkMinute
-  minute : Bits8
+  minute : Integer
   {auto 0 valid : FromTo 0 59 minute}
 
 namespace Minute
@@ -261,7 +260,7 @@ namespace Offset
   public export
   record Hours where
     constructor MkHours
-    hours : Bits8
+    hours : Integer
     {auto 0 valid : FromTo 0 14 hours}
 
   namespace Hours
@@ -287,7 +286,7 @@ namespace Offset
   public export
   record Minutes where
     constructor MkMinutes
-    minutes : Bits8
+    minutes : Integer
     {auto 0 valid : ElemOf [0, 15, 30, 45] minutes}
 
   namespace Minutes
@@ -306,9 +305,9 @@ namespace Offset
   validOffset _     _ _ = True
 
   private
-  boolToBits8 : Bool -> Bits8
-  boolToBits8 True  = 1
-  boolToBits8 False = 0
+  boolToInt : Bool -> Integer
+  boolToInt True  = 1
+  boolToInt False = 0
 
   ||| An UTC offset for a given time.
   public export
@@ -318,7 +317,7 @@ namespace Offset
     hours   : Offset.Hours
     minutes : Offset.Minutes
     { auto 0 valid :
-      Bits8.FromTo 1 1 (boolToBits8 $ validOffset sign hours minutes)
+      FromTo 1 1 (boolToInt $ validOffset sign hours minutes)
     }
 
   %runElab derive "Offset" [Show, Eq, Ord]
@@ -327,10 +326,10 @@ namespace Offset
   refineOffset : Sign -> Offset.Hours -> Offset.Minutes -> Maybe Offset
   refineOffset sign hours minutes =
     let
-      test : Bits8
-      test = boolToBits8 $ validOffset sign hours minutes
+      test : Integer
+      test = boolToInt $ validOffset sign hours minutes
     in
-    case hdec0 {p = Bits8.FromTo 1 1} test of
+    case hdec0 {p = FromTo 1 1} test of
       Just0 _  => Just (MkOffset sign hours minutes)
       Nothing0 => Nothing
 
