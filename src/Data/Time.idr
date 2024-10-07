@@ -130,6 +130,14 @@ Ord Sign where
   compare Plus  Minus = GT
   compare Minus Plus  = LT
 
+||| Negates the provided value if the `Sign` is `Minus`.
+|||
+||| Otherwise, returns the original value.
+private
+applySign : Neg a => Sign -> a -> a
+applySign Plus  = id
+applySign Minus = negate
+
 namespace Duration
 
   ||| A time `Duration` in the format PTnHnMnS.sss.
