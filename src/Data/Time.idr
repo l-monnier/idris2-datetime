@@ -46,7 +46,7 @@ record Second where
 
 
 public export
-refineSecond : Double -> Maybe Second
+refineSecond : Seconds -> Maybe Second
 refineSecond s = case hdec0 {p = Integer.FromTo 0 60} (cast $ floor s) of
   Just0 _  => Just (MkSecond s)
   Nothing0 => Nothing
@@ -156,7 +156,7 @@ namespace Duration
   %runElab derive "Duration" [Show]
 
   ||| Converts a `Duration` to seconds.
-  toSeconds : Duration -> Double
+  toSeconds : Duration -> Seconds
   toSeconds (MkDuration h m s) = cast (3600 * h + 60 * m) + s
 
   ||| Converts seconds to a `Duration`.
@@ -166,7 +166,7 @@ namespace Duration
   |||
   ||| This also applies if seconds are negative: seconds below `59` will be
   ||| to minutes and minutes below `59` will be converted to hours.
-  fromSeconds : Double -> Duration
+  fromSeconds : Seconds -> Duration
   fromSeconds seconds =
     let
       -- `mod` and `div` are implemented in the mathematical form.
@@ -203,7 +203,7 @@ namespace Duration
   ||| This prevents code duplication in the implementation
   ||| of the `Eq` and `Ord` interfaces.
   private
-  compare : (Double -> Double -> Bool) -> Duration -> Duration -> Bool
+  compare : (Seconds -> Seconds -> Bool) -> Duration -> Duration -> Bool
   compare op d1 d2 with (toSeconds d1, toSeconds d2)
     _ | (x, y) = op x y
 
@@ -348,9 +348,9 @@ namespace Offset
     in
     MkDuration nH nM 0
 
-  ||| Concerts an `Offset` to seconds.
+  ||| Concerts an `Offset` to `Seconds`.
   public export
-  toSeconds : Offset -> Double
+  toSeconds : Offset -> Seconds
   toSeconds (MkOffset sign h m) =
     cast $ applySign sign (3600 * cast h.hours + 60 * cast m.minutes)
 
