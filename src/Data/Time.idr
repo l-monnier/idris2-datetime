@@ -30,7 +30,7 @@ record Minute where
 namespace Minute
   %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
 
--- TODO use Seconds instead of Double for more clarity.
+||| Type alias for `Seconds` expressed as a `Double`.
 public export
 Seconds : Type
 Seconds = Double
