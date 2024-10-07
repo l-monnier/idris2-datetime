@@ -353,3 +353,23 @@ namespace Offset
   toSeconds : Offset -> Double
   toSeconds (MkOffset sign h m) =
     cast $ applySign sign (3600 * cast h.hours + 60 * cast m.minutes)
+
+namespace TimeZone
+
+  ||| A time zone which can be UTC, an UTC offset or an arbitrary `Duration`.
+  public export
+  data TimeZone = Z | Offset Offset.Offset | Duration Duration.Duration
+
+  ||| Converts a `TimeZone` to a `Duration`
+  public export
+  toDuration : TimeZone -> Duration
+  toDuration Z                   = MkDuration 0 0 0
+  toDuration (Offset offset)     = toDuration offset
+  toDuration (Duration duration) = duration
+
+  ||| Converts a `TimeZone` to seconds.
+  public export
+  toSeconds : TimeZone -> Double
+  toSeconds Z                   = 0
+  toSeconds (Offset offset)     = toSeconds offset
+  toSeconds (Duration duration) = toSeconds duration
