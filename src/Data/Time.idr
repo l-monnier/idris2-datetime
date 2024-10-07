@@ -318,6 +318,8 @@ namespace Offset
     sign    : Sign
     hours   : Offset.Hours
     minutes : Offset.Minutes
-    {auto 0 valid : validOffset sign hours minutes = True}
+    { auto 0 valid :
+      Bits8.FromTo 1 1 (boolToBits8 $ validOffset sign hours minutes)
+    }
 
   %runElab derive "Offset" [Show, Eq, Ord]
