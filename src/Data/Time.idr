@@ -383,3 +383,19 @@ namespace TimeZone
   toSeconds Z                   = 0
   toSeconds (Offset offset)     = toSeconds offset
   toSeconds (Duration duration) = toSeconds duration
+
+||| Returns the maximum number of seconds for a given time.
+|||
+||| This number can be `59` or `60` depending if the provided
+||| time (in the form of `Hour`, `Minute` and a potential `Offset`)
+||| could potentially have a leap second or not.
+maxSeconds : Hour -> Minute -> Maybe TimeZone -> Integer
+maxSeconds _  14 Nothing   = 60
+maxSeconds _  29 Nothing   = 60
+maxSeconds _  44 Nothing   = 60
+maxSeconds _  59 Nothing   = 60
+maxSeconds h  m  (Just tz) =
+  if ((cast $ toSeconds h + toSeconds m + toSeconds tz) + 60) `mod` 86400 == 0
+  then 60
+  else 59
+maxSeconds _   _ _         = 59
