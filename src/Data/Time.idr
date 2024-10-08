@@ -9,6 +9,11 @@ import Derive.Refined
 %default total
 %language ElabReflection
 
+||| Type alias for `Seconds` expressed as a `Double`.
+public export
+Seconds : Type
+Seconds = Double
+
 ||| An hour ranging from 0 to 23.
 public export
 record Hour where
@@ -18,6 +23,12 @@ record Hour where
 
 namespace Hour
   %runElab derive "Hour" [Show, Eq, Ord, RefinedInteger]
+
+  ||| Converts an `Hour` to `Seconds`.
+  |||
+  ||| Each hours represents 3600 seconds.
+  toSeconds : Hour -> Seconds
+  toSeconds (MkHour h) = cast $ 3600 * h
 
 ||| A minute ranging from 0 to 59.
 public export
@@ -29,10 +40,11 @@ record Minute where
 namespace Minute
   %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
 
-||| Type alias for `Seconds` expressed as a `Double`.
-public export
-Seconds : Type
-Seconds = Double
+  ||| Converts a `Minute` to `Seconds`.
+  |||
+  ||| Each minute represents 60 seconds.
+  toSeconds : Minute -> Seconds
+  toSeconds (MkMinute m) = cast $ 60 * m
 
 ||| A second expressed as a `Double` ranging from `0.0` to `60.0`.
 |||
