@@ -462,3 +462,15 @@ offsetDurationTime :
   Time
 offsetDurationTime hour minute second duration =
   MkTime hour minute second (Just $ TimeZone.Duration $ duration)
+
+namespace Duration
+
+  ||| Converts a `Duration` to a `Time`
+  |||
+  ||| Time units will be clipped to their maximal values.
+  ||| `23` for `Hour`, `59` for `Minute` and `59` for `Second`.
+  public export
+  toTime : Duration -> Maybe Time
+  toTime duration with (normalise duration)
+    _ | MkDuration nH nM nSS =
+      refineTime (cast nH) (cast nM) (cast nSS) Nothing
