@@ -320,3 +320,145 @@ maxSeconds h  m  (Just tz) =
   then 60
   else 59
 maxSeconds _   _ _         = 59
+
+||| An ISO 8601 time.
+|||
+||| If no time zone is specified, then the time is considered as a local time.
+public export
+record Time where
+  constructor MkTime
+  hour     : Hour
+  minute   : Minute
+  second   : Double
+  timeZone : Maybe TimeZone
+  {auto 0 valid: FromTo 0 (maxSeconds hour minute timeZone) (cast second)}
+
+public export
+refineTime : Integer -> Integer -> Seconds -> Maybe TimeZone -> Maybe Time
+refineTime hour minute second timeZone = do
+  h <- refineHour hour
+  m <- refineMinute minute
+  case hdec0 {p = FromTo 0 (maxSeconds h m timeZone)} (cast second) of
+    Just0 _  => Just (MkTime h m second timeZone)
+    Nothing0 => Nothing
+
+||| Converts a `Time` to `Seconds`.
+public export
+toSeconds : Time -> Seconds
+toSeconds (MkTime h m s t) =
+  let
+    -- In case of a lead second, remove it and then put it back.
+    -- This way the modulo 86400 calculation remains coherent.
+    leap : Seconds
+    leap = if s == 60 then 1 else 0
+
+    rawSec : Seconds
+    rawSec= toSeconds h + toSeconds m + s + (offsetSec t) - leap
+
+    intSec : Integer
+    intSec = cast rawSec
+  in
+  (cast $ intSec `mod` 86400) + (rawSec - cast intSec) + leap
+  where
+    offsetSec : (Maybe TimeZone) -> Seconds
+    offsetSec (Just o)  = TimeZone.toSeconds o
+    offsetSec (Nothing) = 0
+
+||| Convert `Seconds` to a local `Time`.
+|||
+||| As `Time` is clipped to `86400` seconds a day,
+||| values above will loop.
+||| Also, values below `0` will loop back.
+||| The below examples returns `Time`s representing:
+|||
+||| - `fromSeconds 86410`: 00:00:10;
+||| - `fromSeconds (-10)`: 23:59:50.
+public export
+fromSeconds : Seconds -> Time
+fromSeconds sec =
+  let
+    secInt : Integer
+    secInt = cast sec
+
+    secNorm := secInt `mod` 86400
+
+    fraction := sec - (cast secInt)
+
+    hour := secNorm `div` 3600
+    minute := (secNorm - (hour * 3600)) `div` 60
+    second := secNorm - (hour * 3600) - (minute * 60)
+  in
+  case refineTime hour minute (cast second + fraction) Nothing of
+    Just time => time
+    -- This case cannot be reached as the number of seconds is normalised.
+    Nothing   => MkTime 0 0 0 Nothing
+
+||| Returns an UTC `Time` (Coordinated Universal Time).
+|||
+||| A leap second (a value of `60` for the second) is only accepted
+||| for hour `23`, minute `59`:
+|||
+||| ```Idris
+||| utc 23 59 60
+||| ```
+public export
+utc :
+  (hour : Hour) ->
+  (minute : Minute) ->
+  (second : Seconds) ->
+  {auto 0 valid: FromTo 0 (maxSeconds hour minute (Just Z)) (cast second)} ->
+  Time
+utc hour minute second = MkTime hour minute second (Just Z)
+
+||| Returns a local `Time`.
+|||
+||| A leap second (a value of `60` for the second) is only accepted
+||| for minutes `14`, `29`, `44` and `59`.
+||| For example, the below value is fine:
+|||
+||| ```Idris
+||| utc 14 29 60
+||| ```
+public export
+local :
+  (hour : Hour) ->
+  (minute : Minute) ->
+  (second : Seconds) ->
+  {auto 0 valid: FromTo 0 (maxSeconds hour minute Nothing) (cast second)} ->
+  Time
+local hour minute second = MkTime hour minute second Nothing
+
+||| Returns a `Time` with an offset.
+|||
+||| a leap second (a value of `60` for the second) is only accepted
+||| if the resulting UTC time is `23` hour, `59` minute.
+public export
+offsetTime :
+  (hour : Hour) ->
+  (minute : Minute) ->
+  (second : Seconds) ->
+  (offset : Offset) ->
+  {auto 0 valid: FromTo 0 (maxSeconds hour minute (Just $ Offset offset)) (cast second)} ->
+  Time
+offsetTime hour minute second offset =
+  MkTime hour minute second (Just $ Offset offset)
+
+||| A `Time` with an offset expressed as a `Duration`.
+|||
+||| A leap second (a value of `60` for the second) is only accepted
+||| if the resulting UTC time is `23` hour, `59` minute.
+public export
+offsetDurationTime :
+  (hour : Hour) ->
+  (minute : Minute) ->
+  (second : Seconds) ->
+  (duration : Duration) ->
+  { auto 0 valid:
+    FromTo
+      0
+      (maxSeconds hour minute (Just $ TimeZone.Duration $ duration))
+      (cast second)
+  } ->
+  Time
+offsetDurationTime hour minute second duration =
+  MkTime hour minute second (Just $ TimeZone.Duration $ duration)
