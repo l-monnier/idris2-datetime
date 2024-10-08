@@ -377,9 +377,9 @@ namespace TimeZone
   toDuration (Offset offset)     = toDuration offset
   toDuration (Duration duration) = duration
 
-  ||| Converts a `TimeZone` to seconds.
+  ||| Converts a `TimeZone` to `Seconds`.
   public export
-  toSeconds : TimeZone -> Double
+  toSeconds : TimeZone -> Seconds
   toSeconds Z                   = 0
   toSeconds (Offset offset)     = toSeconds offset
   toSeconds (Duration duration) = toSeconds duration
