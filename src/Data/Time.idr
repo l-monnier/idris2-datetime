@@ -424,7 +424,7 @@ fromSeconds sec =
     minute := (secNorm - (hour * 3600)) `div` 60
     second := secNorm - (hour * 3600) - (minute * 60)
   in
-  case refineTime hour minute (cast second + fraction) Nothing of
+  case maybeTime hour minute (cast second + fraction) Nothing of
     Just time => time
     -- This case cannot be reached as the number of seconds is normalised.
     Nothing   => MkTime 0 0 0 Nothing
@@ -509,4 +509,4 @@ namespace Duration
   toTime : Duration -> Maybe Time
   toTime duration with (normalise duration)
     _ | MkDuration nH nM nSS =
-      refineTime (cast nH) (cast nM) (cast nSS) Nothing
+      maybeTime (cast nH) (cast nM) (cast nSS) Nothing
