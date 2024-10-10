@@ -268,7 +268,7 @@ namespace Offset
   |||
   ||| Otherwise returns `Nothing`.
   public export
-  maybeOffset : Sign -> Integer -> Integer -> Maybe Offset
+  maybeOffset : Sign -> (hours : Integer) -> (minutes : Integer) -> Maybe Offset
   maybeOffset sign hours minutes = do
     hours'   <- refineHours hours
     minutes' <- refineMinutes minutes
@@ -370,7 +370,12 @@ record Time where
 ||| See documentation of the `Time` type for details on what are the valid
 ||| parameters.
 public export
-maybeTime : Integer -> Integer -> Seconds -> Maybe TimeZone -> Maybe Time
+maybeTime :
+  (hour : Integer) ->
+  (minute : Integer) ->
+  Seconds ->
+  Maybe TimeZone ->
+  Maybe Time
 maybeTime hour minute second timeZone = do
   h <- refineHour hour
   m <- refineMinute minute
