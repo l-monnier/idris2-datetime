@@ -237,10 +237,15 @@ namespace Offset
   validOffset Minus 0 0 = False
   validOffset _     _ _ = True
 
+  ||| `True` predicate.
   private
-  boolToInt : Bool -> Integer
-  boolToInt True  = 1
-  boolToInt False = 0
+  data IsTrue : Bool -> Type where
+    Yes : IsTrue True
+
+  private
+  HDec0 Bool IsTrue where
+    hdec0 False = Nothing0
+    hdec0 True = Just0 Yes
 
   ||| An UTC offset for a given time.
   public export
@@ -249,21 +254,17 @@ namespace Offset
     sign    : Sign
     hours   : Offset.Hours
     minutes : Offset.Minutes
-    { auto 0 valid :
-      FromTo 1 1 (boolToInt $ validOffset sign hours minutes)
-    }
+    {auto 0 valid : IsTrue (validOffset sign hours minutes)}
 
   %runElab derive "Offset" [Show, Eq, Ord]
 
   public export
-  refineOffset : Sign -> Offset.Hours -> Offset.Minutes -> Maybe Offset
-  refineOffset sign hours minutes =
-    let
-      test : Integer
-      test = boolToInt $ validOffset sign hours minutes
-    in
-    case hdec0 {p = FromTo 1 1} test of
-      Just0 _  => Just (MkOffset sign hours minutes)
+  maybeOffset : Sign -> Integer -> Integer -> Maybe Offset
+  maybeOffset sign hours minutes = do
+    hours'   <- refineHours hours
+    minutes' <- refineMinutes minutes
+    case hdec0 {p = IsTrue} (validOffset sign hours' minutes') of
+      Just0 _  => Just (MkOffset sign hours' minutes')
       Nothing0 => Nothing
 
   ||| Converts an `Offset` to a `Duration`.
