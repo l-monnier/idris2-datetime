@@ -9,65 +9,32 @@ import Derive.Refined
 %default total
 %language ElabReflection
 
+--------------------------------------------------------------------------------
+-- Private utility functions
+--------------------------------------------------------------------------------
+
+||| `True` predicate.
+private
+data IsTrue : Bool -> Type where
+  Yes : IsTrue True
+
+private
+HDec0 Bool IsTrue where
+  hdec0 False = Nothing0
+  hdec0 True = Just0 Yes
+
+--------------------------------------------------------------------------------
+-- General types used through the module
+--------------------------------------------------------------------------------
+
 ||| Type alias for `Seconds` expressed as a `Double`.
 public export
 Seconds : Type
 Seconds = Double
 
-||| An hour ranging from 0 to 23.
-public export
-record Hour where
-  constructor MkHour
-  hour : Integer
-  {auto 0 valid : FromTo 0 23 hour}
-
-namespace Hour
-  %runElab derive "Hour" [Show, Eq, Ord, RefinedInteger]
-
-  ||| Converts an `Hour` to `Seconds`.
-  |||
-  ||| Each hours represents 3600 seconds.
-  toSeconds : Hour -> Seconds
-  toSeconds (MkHour h) = cast $ 3600 * h
-
-||| A minute ranging from 0 to 59.
-public export
-record Minute where
-  constructor MkMinute
-  minute : Integer
-  {auto 0 valid : FromTo 0 59 minute}
-
-namespace Minute
-  %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
-
-  ||| Converts a `Minute` to `Seconds`.
-  |||
-  ||| Each minute represents 60 seconds.
-  toSeconds : Minute -> Seconds
-  toSeconds (MkMinute m) = cast $ 60 * m
-
-||| Sign of an UTC `Offset` or of an offset `Duration`.
-|||
-||| `Plus` stands for `+`.
-||| `Minus` stands for `-`.
-public export
-data Sign = Plus | Minus
-
-%runElab derive "Sign" [Show, Eq]
-
-Ord Sign where
-  compare Plus  Plus  = EQ
-  compare Minus Minus = EQ
-  compare Plus  Minus = GT
-  compare Minus Plus  = LT
-
-||| Negates the provided value if the `Sign` is `Minus`.
-|||
-||| Otherwise, returns the original value.
-private
-applySign : Neg a => Sign -> a -> a
-applySign Plus  = id
-applySign Minus = negate
+--------------------------------------------------------------------------------
+-- Time Duration
+--------------------------------------------------------------------------------
 
 namespace Duration
 
@@ -184,7 +151,34 @@ namespace Duration
   Fractional Duration where
     d1 / d2 = normalise $ fromSeconds $ toSeconds d1 / toSeconds d2
 
+--------------------------------------------------------------------------------
+-- Time Offset
+--------------------------------------------------------------------------------
+
 namespace Offset
+
+  ||| Sign of an UTC `Offset` or of an offset `Duration`.
+  |||
+  ||| `Plus` stands for `+`.
+  ||| `Minus` stands for `-`.
+  public export
+  data Sign = Plus | Minus
+
+  %runElab derive "Sign" [Show, Eq]
+
+  Ord Sign where
+    compare Plus  Plus  = EQ
+    compare Minus Minus = EQ
+    compare Plus  Minus = GT
+    compare Minus Plus  = LT
+
+  ||| Negates the provided value if the `Sign` is `Minus`.
+  |||
+  ||| Otherwise, returns the original value.
+  private
+  applySign : Neg a => Sign -> a -> a
+  applySign Plus  = id
+  applySign Minus = negate
 
   ||| Number of hour of an UTC offset.
   |||
@@ -237,16 +231,6 @@ namespace Offset
   validOffset Minus 0 0 = False
   validOffset _     _ _ = True
 
-  ||| `True` predicate.
-  private
-  data IsTrue : Bool -> Type where
-    Yes : IsTrue True
-
-  private
-  HDec0 Bool IsTrue where
-    hdec0 False = Nothing0
-    hdec0 True = Just0 Yes
-
   ||| An UTC offset for a given time.
   |||
   ||| For the `Offset` to be valid:
@@ -295,6 +279,10 @@ namespace Offset
   toSeconds (MkOffset sign h m) =
     cast $ applySign sign (3600 * h.hours + 60 * m.minutes)
 
+--------------------------------------------------------------------------------
+-- Time Zone
+--------------------------------------------------------------------------------
+
 namespace TimeZone
 
   ||| A time zone which can be UTC, an UTC offset or an arbitrary `Duration`.
@@ -314,6 +302,42 @@ namespace TimeZone
   toSeconds Z                   = 0
   toSeconds (Offset offset)     = toSeconds offset
   toSeconds (Duration duration) = toSeconds duration
+
+--------------------------------------------------------------------------------
+-- Time
+--------------------------------------------------------------------------------
+
+||| An hour ranging from 0 to 23.
+public export
+record Hour where
+  constructor MkHour
+  hour : Integer
+  {auto 0 valid : FromTo 0 23 hour}
+
+namespace Hour
+  %runElab derive "Hour" [Show, Eq, Ord, RefinedInteger]
+
+  ||| Converts an `Hour` to `Seconds`.
+  |||
+  ||| Each hours represents 3600 seconds.
+  toSeconds : Hour -> Seconds
+  toSeconds (MkHour h) = cast $ 3600 * h
+
+||| A minute ranging from 0 to 59.
+public export
+record Minute where
+  constructor MkMinute
+  minute : Integer
+  {auto 0 valid : FromTo 0 59 minute}
+
+namespace Minute
+  %runElab derive "Minute" [Show, Eq, Ord, RefinedInteger]
+
+  ||| Converts a `Minute` to `Seconds`.
+  |||
+  ||| Each minute represents 60 seconds.
+  toSeconds : Minute -> Seconds
+  toSeconds (MkMinute m) = cast $ 60 * m
 
 ||| Returns the maximum number of seconds for a given time.
 |||
@@ -504,14 +528,12 @@ offsetDurationTime :
 offsetDurationTime hour minute second duration =
   MkTime hour minute second (Just $ TimeZone.Duration $ duration)
 
-namespace Duration
-
-  ||| Converts a `Duration` to a `Time`
-  |||
-  ||| Time units will be clipped to their maximal values.
-  ||| `23` for `Hour`, `59` for `Minute` and `59` for `Second`.
-  public export
-  toTime : Duration -> Maybe Time
-  toTime duration with (normalise duration)
-    _ | MkDuration nH nM nSS =
-      maybeTime (cast nH) (cast nM) (cast nSS) Nothing
+||| Returns a `Time` from a `Duration`.
+|||
+||| Time units will be clipped to their maximal values.
+||| `23` for `Hour`, `59` for `Minute` and `59` for `Second`.
+public export
+fromDuration : Duration -> Maybe Time
+fromDuration duration with (normalise duration)
+  _ | MkDuration nH nM nSS =
+    maybeTime (cast nH) (cast nM) (cast nSS) Nothing
