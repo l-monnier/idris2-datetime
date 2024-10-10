@@ -289,7 +289,7 @@ namespace Offset
     in
     MkDuration nH nM 0
 
-  ||| Concerts an `Offset` to `Seconds`.
+  ||| Converts an `Offset` to `Seconds`.
   public export
   toSeconds : Offset -> Seconds
   toSeconds (MkOffset sign h m) =
