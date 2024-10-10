@@ -364,6 +364,11 @@ record Time where
   timeZone : Maybe TimeZone
   {auto 0 valid: FromTo 0 (maxSeconds hour minute timeZone) (cast second)}
 
+||| Returns `Just` a `Time` if the provided parameters are valid.
+|||
+||| Otherwise, returns `Nothing`.
+||| See documentation of the `Time` type for details on what are the valid
+||| parameters.
 public export
 maybeTime : Integer -> Integer -> Seconds -> Maybe TimeZone -> Maybe Time
 maybeTime hour minute second timeZone = do
@@ -447,7 +452,7 @@ utc hour minute second = MkTime hour minute second (Just Z)
 ||| for minutes `14`, `29`, `44` and `59`.
 ||| For example, the below value is fine:
 |||
-||| ```Idris
+||| ```idris
 ||| utc 14 29 60
 ||| ```
 public export
