@@ -248,6 +248,12 @@ namespace Offset
     hdec0 True = Just0 Yes
 
   ||| An UTC offset for a given time.
+  |||
+  ||| For the `Offset` to be valid:
+  |||
+  ||| - the `hours` must range from `0` to `14` (included);
+  ||| - the `minutes` must be `0`, `15`, `30`, `45`;
+  ||| - if the `sign` is `Minus`, `hours` or `minutes` must not be `0`.
   public export
   record Offset where
     constructor MkOffset
@@ -258,6 +264,9 @@ namespace Offset
 
   %runElab derive "Offset" [Show, Eq, Ord]
 
+  ||| Returns `Just` an `Offset` if the provided values are valid.
+  |||
+  ||| Otherwise returns `Nothing`.
   public export
   maybeOffset : Sign -> Integer -> Integer -> Maybe Offset
   maybeOffset sign hours minutes = do
@@ -324,7 +333,28 @@ maxSeconds _   _ _         = 59
 
 ||| An ISO 8601 time.
 |||
-||| If no time zone is specified, then the time is considered as a local time.
+||| If the value of `timeZone` is `Nothing`, then the `Time` is considered as a
+||| local time.
+|||
+||| For a `Time` to be valid:
+|||
+||| - the `hour` must range from `0` to `23` (included);
+||| - the `minute` must range from `0` to `59` (included);
+||| - unless if it is a leap second, the `second` must range
+|||   from `0` to `59` (included);
+||| - if it is a leap second, the `second` can range up to `60` (included).
+|||
+||| For leap second to be considered as valid:
+|||
+||| - if the `timeZone` is `Nothing` (local time), the `minute` must be
+|||   `14`, `29`, `44` or `59`. This is considering the fact that leap seconds
+|||   are added at 23:59 UTC time and the smallest unit used in practice for
+|||   time offsets is 15 minutes.
+||| - if the `timeZone` is `Just Z` (UTC), the `hour` must be `23` and the
+|||   `minute` must be `59`.
+||| - if the `timeZone` is `Just (Offset Offset.Offset)` or
+|||   `Just (Duration Duration.Duration)`, the computation of this offset to the
+|||   time must result to `23` `hour` and `59` `minute` (23:59 UTC).
 public export
 record Time where
   constructor MkTime
@@ -335,8 +365,8 @@ record Time where
   {auto 0 valid: FromTo 0 (maxSeconds hour minute timeZone) (cast second)}
 
 public export
-refineTime : Integer -> Integer -> Seconds -> Maybe TimeZone -> Maybe Time
-refineTime hour minute second timeZone = do
+maybeTime : Integer -> Integer -> Seconds -> Maybe TimeZone -> Maybe Time
+maybeTime hour minute second timeZone = do
   h <- refineHour hour
   m <- refineMinute minute
   case hdec0 {p = FromTo 0 (maxSeconds h m timeZone)} (cast second) of
