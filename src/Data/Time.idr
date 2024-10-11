@@ -519,10 +519,25 @@ offsetTime :
   (minute : Minute) ->
   (second : Seconds) ->
   (offset : Offset) ->
-  {auto 0 valid: FromTo 0 (maxSeconds hour minute (Just $ Offset offset)) (cast second)} ->
+  { auto 0 valid:
+    FromTo
+      0
+      (maxSeconds hour minute (Just $ Offset offset))
+      (cast second)
+  } ->
   Time
 offsetTime hour minute second offset =
   MkTime hour minute second (Just $ Offset offset)
+
+public export
+maybeOffsetTime :
+  (hour : Integer) ->
+  (minute : Integer) ->
+  Seconds ->
+  Offset ->
+  Maybe Time
+maybeOffsetTime hour minute second offset =
+  maybeTime hour minute second (Just $ Offset offset)
 
 ||| A `Time` with an offset expressed as a `Duration`.
 |||
