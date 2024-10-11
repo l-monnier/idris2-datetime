@@ -23,6 +23,22 @@ HDec0 Bool IsTrue where
   hdec0 False = Nothing0
   hdec0 True = Just0 Yes
 
+||| Returns the value after the decimal place.
+|||
+||| For example:
+|||
+||| ```idris
+||| decimal 10.42 == 0.42
+|||
+||| decimal (-10.42) == (-0.42)
+||| ```
+private
+decimal : Double -> Double
+decimal x =
+  if x < 0
+  then x - ceiling x
+  else x - floor x
+
 --------------------------------------------------------------------------------
 -- General types used through the module
 --------------------------------------------------------------------------------
