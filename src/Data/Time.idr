@@ -439,7 +439,7 @@ toSeconds (MkTime h m s t) =
     intSec : Integer
     intSec = cast rawSec
   in
-  (cast $ intSec `mod` 86400) + (rawSec - cast intSec) + leap
+  (cast $ intSec `mod` 86400) + decimal rawSec + leap
   where
     offsetSec : (Maybe TimeZone) -> Seconds
     offsetSec (Just o)  = TimeZone.toSeconds o
@@ -463,13 +463,11 @@ fromSeconds sec =
 
     secNorm := secInt `mod` 86400
 
-    fraction := sec - (cast secInt)
-
     hour := secNorm `div` 3600
     minute := (secNorm - (hour * 3600)) `div` 60
     second := secNorm - (hour * 3600) - (minute * 60)
   in
-  case maybeTime hour minute (cast second + fraction) Nothing of
+  case maybeTime hour minute (cast second + decimal sec) Nothing of
     Just time => time
     -- This case cannot be reached as the number of seconds is normalised.
     Nothing   => MkTime 0 0 0 Nothing
