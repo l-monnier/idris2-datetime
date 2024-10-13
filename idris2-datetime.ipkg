@@ -11,6 +11,6 @@ depends = base >= 0.5.1
         , elab-util
         , refined
 
-modules = Idris2_datetime
+modules = Data.Time
 
 sourcedir = "src"
