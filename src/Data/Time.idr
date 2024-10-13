@@ -575,3 +575,40 @@ fromDuration : Duration -> Maybe Time
 fromDuration duration with (normalise duration)
   _ | MkDuration nH nM nSS =
     maybeTime (cast nH) (cast nM) (cast nSS) Nothing
+
+||| Returns the `Duration` between two `Time`s.
+|||
+||| You may use this function qualified (`Time.diff`) for more clarity.
+public export
+diff : Time -> Time -> Duration
+diff t1 t2 = fromSeconds (toSeconds t1 - toSeconds t2)
+
+||| Adds a `Duration` to a `Time`.
+|||
+||| If any, the `Offset` remains untouched.
+public export
+addDuration : Time -> Duration -> Time
+addDuration time duration =
+  let
+    durationSec := toSeconds duration
+  in
+  -- If the duration is very small, leap second must be preserved.
+  if decimal time.second + durationSec  < 1
+  then case maybeTime
+    time.hour.hour
+    time.minute.minute
+    (time.second + durationSec)
+    time.timeZone of
+    Just t  => t
+    -- Cannot be reached as the initial time was valid
+    -- and there is no second unit change.
+    Nothing => MkTime 0 0 0 Nothing
+  else
+    let
+      t := fromSeconds (toSeconds time + toSeconds duration)
+    in
+    case maybeTime t.hour.hour t.minute.minute t.second time.timeZone of
+      Just t  => t
+      -- Cannot be reached as `fromSeconds` does not generate `Time`s
+      -- with leap second.
+      Nothing => MkTime 0 0 0 Nothing
