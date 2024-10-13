@@ -23,6 +23,19 @@ HDec0 Bool IsTrue where
   hdec0 False = Nothing0
   hdec0 True = Just0 Yes
 
+||| `ElemOf [m, n] o` is an alias for `(Equal m || Equal n) o`.
+|||
+||| For example, using `hdec0` you can write:
+|||
+||| ```idris example
+||| hdec0 {p = ElemOf [0, 15, 30, 40]} value
+||| ```
+private
+0 ElemOf : List t -> t -> Type
+ElemOf []        = const Void
+ElemOf (x :: []) = Equal x
+ElemOf (x :: xs) = Equal x || ElemOf xs
+
 ||| Returns the value after the decimal place.
 |||
 ||| For example:
@@ -208,19 +221,6 @@ namespace Offset
 
   namespace Hours
     %runElab derive "Offset.Hours" [Show, Eq, Ord, RefinedInteger]
-
-  ||| `ElemOf [m, n] o` is an alias for `(Equal m || Equal n) o`.
-  |||
-  ||| For example, using `hdec0` you can write:
-  |||
-  ||| ```idris example
-  ||| hdec0 {p = ElemOf [0, 15, 30, 40]} value
-  ||| ```
-  private
-  0 ElemOf : List t -> t -> Type
-  ElemOf []        = const Void
-  ElemOf (x :: []) = Equal x
-  ElemOf (x :: xs) = Equal x || ElemOf xs
 
   ||| Number of minutes for an UTC offset of a time in complement of an hour.
   |||
