@@ -83,6 +83,7 @@ namespace Duration
   %runElab derive "Duration" [Show]
 
   ||| Converts a `Duration` to seconds.
+  public export
   toSeconds : Duration -> Seconds
   toSeconds (MkDuration h m s) = cast (3600 * h + 60 * m) + s
 
@@ -93,6 +94,7 @@ namespace Duration
   |||
   ||| This also applies if seconds are negative: seconds below `59` will be
   ||| to minutes and minutes below `59` will be converted to hours.
+  public export
   fromSeconds : Seconds -> Duration
   fromSeconds seconds =
     let
@@ -122,6 +124,7 @@ namespace Duration
   |||
   ||| Minutes and seconds are between `0` and `59`.
   ||| When below or above, hours and minutes are adjusted accordingly.
+  public export
   normalise : Duration -> Duration
   normalise = fromSeconds . toSeconds
 
@@ -141,12 +144,14 @@ namespace Duration
   |||
   ||| For example `(MkDuration 0 180 0 0) == (MkDuration 3 0 0 0) = True`.
   ||| Both represent an amount of time of 3 hours.
+  public export
   Eq Duration where
     (==) = compare (==)
 
   ||| `Duration`s are converted to seconds before being compared.
   |||
   ||| This is a similar behaviour as described for the `Eq` instance.
+  public export
   Ord Duration where
     (<) = compare (<)
 
@@ -195,6 +200,7 @@ namespace Offset
 
   %runElab derive "Sign" [Show, Eq]
 
+  public export
   Ord Sign where
     compare Plus  Plus  = EQ
     compare Minus Minus = EQ
@@ -336,6 +342,7 @@ namespace Hour
   ||| Converts an `Hour` to `Seconds`.
   |||
   ||| Each hours represents 3600 seconds.
+  public export
   toSeconds : Hour -> Seconds
   toSeconds (MkHour h) = cast $ 3600 * h
 
@@ -352,6 +359,7 @@ namespace Minute
   ||| Converts a `Minute` to `Seconds`.
   |||
   ||| Each minute represents 60 seconds.
+  public export
   toSeconds : Minute -> Seconds
   toSeconds (MkMinute m) = cast $ 60 * m
 
@@ -360,6 +368,7 @@ namespace Minute
 ||| This number can be `59` or `60` depending if the provided
 ||| time (in the form of `Hour`, `Minute` and a potential `Offset`)
 ||| could potentially have a leap second or not.
+private
 maxSeconds : Hour -> Minute -> Maybe TimeZone -> Integer
 maxSeconds _  14 Nothing   = 60
 maxSeconds _  29 Nothing   = 60
