@@ -518,7 +518,7 @@ local hour minute second = MkTime hour minute second Nothing
 
 ||| Returns a `Time` with an offset.
 |||
-||| a leap second (a value of `60` for the second) is only accepted
+||| A leap second (a value of `60` for the second) is only accepted
 ||| if the resulting UTC time is `23` hour, `59` minute.
 public export
 offsetTime :
@@ -536,6 +536,10 @@ offsetTime :
 offsetTime hour minute second offset =
   MkTime hour minute second (Just $ Offset offset)
 
+||| Returns a `Time` with an offset provided the provided values are valid.
+|||
+||| A leap second (a value of `60` for the second) is only accepted
+||| if the resulting UTC time is `23` hour, `59` minute.
 public export
 maybeOffsetTime :
   (hour : Integer) ->
