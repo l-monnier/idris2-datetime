@@ -372,6 +372,29 @@ namespace TimeZone
   toSeconds (Offset offset)     = toSeconds offset
   toSeconds (Duration duration) = toSeconds duration
 
+  ||| Returns `True` if two `TimeZone`s represent the same amount of time.
+  |||
+  ||| This means that `True` shall be returned, even if the two `TimeZone`s
+  ||| are expressed in different ways (for example as an `Offset` and as
+  ||| a `Duration`).
+  public export
+  Eq TimeZone where
+    Z  == Z  = True
+    o1 == Z  = toSeconds o1 == 0
+    Z  == o2 = 0 == toSeconds o2
+    o1 == o2 = toSeconds o1 == toSeconds o2
+
+  ||| Returns `True` if the `TimeZone` represents a lesser amount of time.
+  |||
+  ||| As for `Eq` the nature of the `TimeZone`s does not matter, only the
+  ||| amount of time they represent.
+  public export
+  Ord TimeZone where
+    Z  < Z  = False
+    o1 < Z  = toSeconds o1 < 0
+    Z  < o2 = 0 < toSeconds o2
+    o1 < o2 = toSeconds o1 < toSeconds o2
+
 --------------------------------------------------------------------------------
 -- Time
 --------------------------------------------------------------------------------
@@ -529,6 +552,18 @@ fromSeconds sec =
     Just time => time
     -- This case cannot be reached as the number of seconds is normalised.
     Nothing   => MkTime 0 0 0 Nothing
+
+||| Returns `True` if the two `Time`s represent a same amount of time.
+|||
+||| The way they are built (with or without `TimeZone`) is irrelevant.
+public export
+Eq Time where
+  t1 == t2 = toSeconds t1 == toSeconds t2
+
+||| Returns `True` if the first `Time` represents a lesser amount of time.
+public export
+Ord Time where
+  t1 < t2 = toSeconds t1 < toSeconds t2
 
 ||| Returns an UTC `Time` (Coordinated Universal Time).
 |||
