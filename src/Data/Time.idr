@@ -539,16 +539,12 @@ public export
 fromSeconds : Seconds -> Time
 fromSeconds sec =
   let
-    secInt : Integer
-    secInt = cast sec
-
-    secNorm := secInt `mod` 86400
-
-    hour := secNorm `div` 3600
-    minute := (secNorm - (hour * 3600)) `div` 60
-    second := secNorm - (hour * 3600) - (minute * 60)
+    secNorm   := sec `eMod` 86400
+    (min, s)  := secNorm `eDivMod` 60
+    (hour, m) := min `eDivMod` 60
+    h         := hour `eMod` (the Integer 24)
   in
-  case maybeTime hour minute (cast second + decimal sec) Nothing of
+  case maybeTime h m s Nothing of
     Just time => time
     -- This case cannot be reached as the number of seconds is normalised.
     Nothing   => MkTime 0 0 0 Nothing
