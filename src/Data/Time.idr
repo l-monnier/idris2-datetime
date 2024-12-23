@@ -438,7 +438,7 @@ namespace Minute
 ||| This number can be `59` or `60` depending if the provided
 ||| time (in the form of `Hour`, `Minute` and a potential `Offset`)
 ||| could potentially have a leap second or not.
-private
+public export
 maxSeconds : Hour -> Minute -> Maybe TimeZone -> Integer
 maxSeconds _  14 Nothing   = 60
 maxSeconds _  29 Nothing   = 60
