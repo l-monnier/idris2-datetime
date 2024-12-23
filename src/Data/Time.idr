@@ -356,6 +356,8 @@ namespace TimeZone
   public export
   data TimeZone = Z | Offset Offset.Offset | Duration Duration.Duration
 
+  %runElab derive "TimeZone" [Show]
+
   ||| Converts a `TimeZone` to a `Duration`
   public export
   toDuration : TimeZone -> Duration
@@ -457,6 +459,8 @@ record Time where
   second   : Double
   timeZone : Maybe TimeZone
   {auto 0 valid: FromTo 0 (maxSeconds hour minute timeZone) (cast second)}
+
+%runElab derive "Time" [Show]
 
 ||| Returns `Just` a `Time` if the provided parameters are valid.
 |||
