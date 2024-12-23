@@ -13,6 +13,67 @@ import Derive.Refined
 -- Private utility functions
 --------------------------------------------------------------------------------
 
+private
+interface
+  (Ord dividendTy, Abs dividendTy, Neg dividendTy, Ord divisorTy, Neg divisorTy)
+  => EuclidianDivision dividendTy divisorTy where 
+
+  ||| Similar to `div`.
+  eDiv : dividendTy -> divisorTy -> divisorTy
+
+  ||| Similar to `mod`.
+  eMod : dividendTy -> divisorTy -> dividendTy
+
+  ||| Combination of the `eDiv` and `eMod` functions.
+  |||
+  ||| Returns the quotient and remainder as a `Pair`.
+  eDivMod : dividendTy -> divisorTy -> (divisorTy, dividendTy)
+ 
+  ||| Integer division truncated toward zero.
+  |||
+  ||| It behaves the same as `eDiv` when both dividend and divisor are positive
+  ||| or negative.
+  ||| When either the divisor or the dividend is negative, the returned quotient
+  ||| will be rounded toward zero.
+  |||
+  ||| ```idris example
+  ||| (-9) `quot` 4 == 2
+  ||| ```
+  eQuot : dividendTy -> divisorTy -> divisorTy
+
+  ||| Signed integer remainder.
+  |||
+  ||| Similar as `eMod`, but with a negative value for negative input.
+  eRem : dividendTy -> divisorTy -> dividendTy
+
+  ||| Combination of `eQuot` and `eRem`.
+  |||
+  ||| Returns the quotient and remainder of a division as a `Pair`.
+  eQuotRem : dividendTy -> divisorTy -> (divisorTy, dividendTy)
+
+  eDivMod dividend divisor = (dividend `eDiv` divisor, dividend `eMod` divisor)
+
+  eQuot dividend divisor =
+    case (compare dividend 0, compare divisor 0) of
+      (LT, GT) => negate (abs dividend `eDiv` divisor)
+      _        => dividend `eDiv` divisor
+
+  eRem a b =
+    case (compare a 0, compare b 0) of
+      (LT, GT) => negate (abs a `eMod` b)
+      _ => a `eMod` b
+
+  eQuotRem dividend divisor =
+    (dividend `eQuot` divisor, dividend `eRem` divisor)
+
+EuclidianDivision Integer Integer where
+  eDiv dividend divisor = div dividend divisor
+  eMod a b = mod a b
+
+EuclidianDivision Double Integer where
+  eDiv dividend divisor = div (cast dividend) divisor
+  eMod a b = let aInt = cast a in cast (mod aInt b) + a - (cast aInt)
+
 ||| `True` predicate.
 private
 data IsTrue : Bool -> Type where
@@ -93,30 +154,14 @@ namespace Duration
   ||| converted to minutes and minutes above `59` will be converted to hours.
   |||
   ||| This also applies if seconds are negative: seconds below `59` will be
-  ||| to minutes and minutes below `59` will be converted to hours.
+  ||| converted to negative minutes and minutes below `59` will be converted to
+  ||| negative hours.
   public export
   fromSeconds : Seconds -> Duration
   fromSeconds seconds =
     let
-      -- `mod` and `div` are implemented in the mathematical form.
-      -- This means that for negative numbers, the remaining will
-      -- remain the same regardless of the sign of the divisor.
-      --
-      -- For example, `mod (-10) (-60) == 50`.
-      -- In our case we want `-10`. To achieve our goal, we
-      -- use an absolute value and negate the end result.
-      absSec := abs seconds
-
-      absSecInt : Integer
-      absSecInt = cast absSec
-
-      sign : (Eq a, Neg a) => a -> a
-      sign x = if seconds < 0 && x /= 0 then negate x else x
-
-      s := sign $ cast (absSecInt `mod` 60) + (absSec - cast absSecInt)
-      min := absSecInt `div` 60
-      m := sign $ min `mod` 60
-      h := sign $ min `div` 60
+      (min, s) := seconds `eQuotRem` 60
+      (h, m)   := min `eQuotRem` 60
     in
       MkDuration h m s
 
